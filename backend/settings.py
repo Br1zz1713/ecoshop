@@ -88,6 +88,12 @@ REST_FRAMEWORK = {
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True
 
+# CSRF Settings for Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.railway.app',
+    'https://*.up.railway.app',
+]
+
 
 ROOT_URLCONF = 'backend.urls'
 
