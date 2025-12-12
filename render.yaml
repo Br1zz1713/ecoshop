@@ -22,7 +22,7 @@ services:
   # 2. Frontend Service (Static Site)
   - type: static
     name: frontend
-    env: node
+    env: static
     root: frontend
     buildCommand: "npm install && npm run build"
     publishDir: "dist"
