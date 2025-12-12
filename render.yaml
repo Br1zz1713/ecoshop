@@ -19,13 +19,13 @@ services:
       - key: DEBUG
         value: "False"
 
-  # 2. Frontend Service (Static Site)
+  # 2. Frontend Service (Node.js Web Service acting as Static Site)
   - type: web
     name: frontend
-    env: static
-    root: frontend
+    env: node
+    rootDir: frontend
     buildCommand: "npm install && npm run build"
-    publishDir: "dist"
+    startCommand: "npx -y serve -s dist -p $PORT"
     envVars:
       - key: VITE_API_URL
         fromService:
