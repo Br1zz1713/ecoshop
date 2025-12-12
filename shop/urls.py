@@ -10,7 +10,8 @@ from .views import (
     AnalyticsView,
     CategoryCreateView,
     CategoryUpdateView,
-    CategoryDeleteView
+    CategoryDeleteView,
+    CategoryListView
 )
 
 app_name = 'shop'
