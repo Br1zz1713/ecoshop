@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category, ProductImage
+from .models import Product, Category, ProductImage, SiteConfig
 
 class CategorySerializer(serializers.ModelSerializer):
     featured_product_image = serializers.SerializerMethodField()
