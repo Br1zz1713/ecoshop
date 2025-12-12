@@ -1,0 +1,74 @@
+# Python
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/media
+/staticfiles
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak
+
+# Gemini artifacts
+.gemini/
+
+# Local development files (not needed for Railway)
+run_local.bat
+site_manager.bat
+site_manager.py
+README_MANAGER.md
+backend/settings.production.py
+DEPLOYMENT.md
+FIX_404.md
+CLEANUP.md
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Environment variables (use Railway dashboard instead)
+.env
+.env.local
