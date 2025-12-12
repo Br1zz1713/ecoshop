@@ -8,13 +8,9 @@ from .views import (
     ProductDeleteView,
     increment_product_view,
     AnalyticsView,
-    CategoryListView,
     CategoryCreateView,
     CategoryUpdateView,
-    CategoryCreateView,
-    CategoryUpdateView,
-    CategoryDeleteView,
-    SiteConfigView
+    CategoryDeleteView
 )
 
 app_name = 'shop'
@@ -33,7 +29,4 @@ urlpatterns = [
     path('categories/create/', CategoryCreateView.as_view(), name='category_create'),
     path('categories/<int:id>/update/', CategoryUpdateView.as_view(), name='category_update'),
     path('categories/<int:id>/delete/', CategoryDeleteView.as_view(), name='category_delete'),
-
-    # Site Config
-    path('config/', SiteConfigView.as_view(), name='site_config'),
 ]

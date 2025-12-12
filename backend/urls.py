@@ -49,7 +49,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('shop.urls', namespace='shop')),
     path('api/', include('accounts.urls')),
-    path('api/', include('blog.urls', namespace='blog')),
     # Serve React app for all other routes
     re_path(r'^(?!api/|admin/|static/|media/).*$', serve_react),
 ]

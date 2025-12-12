@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Product, Category, ProductImage, SiteConfig
+from .models import Product, Category, ProductImage
 
 class CategorySerializer(serializers.ModelSerializer):
     featured_product_image = serializers.SerializerMethodField()
@@ -24,12 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country', 'is_bestseller']
-
-class SiteConfigSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SiteConfig
-        fields = ['history_title', 'history_text']
+        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
