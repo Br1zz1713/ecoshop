@@ -10,7 +10,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
 
-  backend:
+  web:
     build:
       context: .
       dockerfile: backend/Dockerfile
@@ -26,7 +26,7 @@ services:
     environment:
       - DEBUG=0
       - SECRET_KEY=django-insecure-prod-key-change-me
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - ALLOWED_HOSTS=localhost,127.0.0.1,web
       - DATABASE_ENGINE=django.db.backends.postgresql
       - DATABASE_NAME=shopdb
       - DATABASE_USER=postgres
@@ -39,7 +39,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - backend
+      - web
 
 volumes:
   postgres_data:
