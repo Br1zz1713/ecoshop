@@ -27,7 +27,7 @@ class CustomUserManager(BaseUserManager):
 class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=20, unique=True)
+    phone_number = models.CharField(max_length=254, unique=True)  # Increased to allow emails
     
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['email']
