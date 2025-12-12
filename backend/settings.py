@@ -26,7 +26,20 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-arl+6l_7zfkkb3t_4)@vz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
+# Updated ALLOWED_HOSTS for Railway deployment
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# Add Railway domains automatically
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')
+if RAILWAY_STATIC_URL:
+    ALLOWED_HOSTS.append(RAILWAY_STATIC_URL)
+
+# Allow all Railway.app subdomains in production
+if not DEBUG:
+    ALLOWED_HOSTS.extend([
+        '.railway.app',
+        '.up.railway.app',
+    ])
 
 
 # Application definition
