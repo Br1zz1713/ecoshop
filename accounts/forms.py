@@ -3,9 +3,9 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
 
 class CustomAdminAuthenticationForm(AuthenticationForm):
-    """Custom authentication form for Django admin that works with phone_number"""
+    """Simplified authentication form"""
     username = forms.CharField(
-        label="Phone number or Email",
+        label="Username (phone number)",
         max_length=254,
         widget=forms.TextInput(attrs={'autofocus': True}),
     )
@@ -15,15 +15,15 @@ class CustomAdminAuthenticationForm(AuthenticationForm):
         password = self.cleaned_data.get('password')
 
         if username is not None and password:
+            # Try to authenticate with phone_number as username
             self.user_cache = authenticate(
                 self.request,
-                username=username,
+                phone_number=username,
                 password=password,
             )
             if self.user_cache is None:
                 raise forms.ValidationError(
-                    "Please enter a correct phone number/email and password. "
-                    "Note that both fields may be case-sensitive.",
+                    "Invalid credentials",
                     code='invalid_login',
                 )
             else:
