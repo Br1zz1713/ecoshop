@@ -13,4 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Run migrations and start server
-CMD python manage.py migrate && gunicorn backend.wsgi:application --bind 0.0.0.0:$PORT
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+
+# Run migrations and start server
+CMD ["./entrypoint.sh"]
