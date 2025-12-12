@@ -40,7 +40,14 @@ const translations = {
             payment: 'Secure Payment',
             payment_desc: '100% secure checkout'
         },
-        home: { categories: 'Shop by Category', see_all: 'See all' },
+        home: {
+            categories: 'Shop by Category',
+            see_all: 'See all',
+            hits: 'Bestsellers',
+            history_title: 'Our Journey',
+            history_text: 'What started as a small local shop in 2016 has grown into a trusted brand...',
+            blog_title: 'Expert Advice'
+        },
         shop: {
             title: 'Shop Collection',
             filters: 'Filters',
@@ -182,7 +189,14 @@ const translations = {
             payment: 'Швидка оплата',
             payment_desc: 'Безпечні платежі'
         },
-        home: { categories: 'Категорії', see_all: 'Всі' },
+        home: {
+            categories: 'Категорії',
+            see_all: 'Всі',
+            hits: 'Хіти Продажів',
+            history_title: 'Наш Шлях',
+            history_text: 'Те, що починалося як маленький місцевий магазинчик...',
+            blog_title: 'Поради Експертів'
+        },
         shop: {
             title: 'Каталог',
             filters: 'Фільтри',
@@ -324,7 +338,14 @@ const translations = {
             payment: 'Быстрая оплата',
             payment_desc: 'Безопасные платежи'
         },
-        home: { categories: 'Категории', see_all: 'Все' },
+        home: {
+            categories: 'Категории',
+            see_all: 'Все',
+            hits: 'Хиты Продаж',
+            history_title: 'Наш Путь',
+            history_text: 'То, что начиналось как маленький местный магазинчик...',
+            blog_title: 'Советы Экспертов'
+        },
         shop: {
             title: 'Каталог',
             filters: 'Фильтры',

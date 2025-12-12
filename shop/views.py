@@ -9,9 +9,19 @@ from .models import Product, Order, Category
 from .serializers import ProductSerializer, ProductCreateSerializer, CategorySerializer
 
 # List all products
+# List all products
 class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.filter(available=True)
     serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        queryset = Product.objects.filter(available=True).select_related('category').prefetch_related('images')
+        
+        # Filter by Bestseller
+        is_bestseller = self.request.query_params.get('is_bestseller')
+        if is_bestseller == 'true':
+            queryset = queryset.filter(is_bestseller=True)
+
+        return queryset
 
 # Create a new product (Admin usage)
 class ProductCreateView(generics.CreateAPIView):
@@ -107,3 +117,14 @@ class CategoryDeleteView(generics.DestroyAPIView):
     serializer_class = CategorySerializer
     permission_classes = [IsAdminUser]
     lookup_field = 'id'
+
+from .models import SiteConfig
+from .serializers import SiteConfigSerializer
+
+class SiteConfigView(views.APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        config, created = SiteConfig.objects.get_or_create(id=1)
+        serializer = SiteConfigSerializer(config)
+        return Response(serializer.data)

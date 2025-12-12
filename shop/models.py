@@ -29,6 +29,7 @@ class Product(models.Model):
     volume = models.CharField(max_length=50, blank=True, help_text="e.g., 50 ml")
     skin_type = models.CharField(max_length=100, blank=True, help_text="e.g., All types, Dry, Oily")
     country = models.CharField(max_length=100, blank=True, default="Ukraine")
+    is_bestseller = models.BooleanField(default=False, verbose_name="Hit / Bestseller")
 
     views = models.PositiveIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
@@ -91,3 +92,21 @@ class OrderItem(models.Model):
 
     def get_cost(self):
         return self.price * self.quantity
+
+class SiteConfig(models.Model):
+    """Singleton model for editable site content"""
+    history_title = models.CharField(max_length=200, default="Our Journey")
+    history_text = models.TextField(default="Default history text...")
+    
+    class Meta:
+        verbose_name = "Site Configuration"
+        verbose_name_plural = "Site Configuration"
+
+    def __str__(self):
+        return "Site Configuration (Edit here)"
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and SiteConfig.objects.exists():
+            # If you try to create a new one, it updates the existing one
+            self.pk = SiteConfig.objects.first().pk
+        super(SiteConfig, self).save(*args, **kwargs)

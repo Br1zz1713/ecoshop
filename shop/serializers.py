@@ -24,7 +24,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
+        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country', 'is_bestseller']
+
+class SiteConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SiteConfig
+        fields = ['history_title', 'history_text']
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     class Meta:
