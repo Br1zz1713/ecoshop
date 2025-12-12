@@ -12,23 +12,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Create python entrypoint script directly to avoid shell variable issues
-RUN printf 'import os, sys, subprocess\n\
-    \n\
-    def main():\n\
-    port = os.environ.get("PORT", "8000")\n\
-    print(f"Starting application on port {port}...")\n\
-    \n\
-    print("Running migrations...")\n\
-    subprocess.run(["python", "manage.py", "migrate"], check=True)\n\
-    \n\
-    print(f"Starting Gunicorn on 0.0.0.0:{port}...")\n\
-    # Replaces current process with Gunicorn\n\
-    os.execvp("gunicorn", ["gunicorn", "backend.wsgi:application", "--bind", f"0.0.0.0:{port}"])\n\
-    \n\
-    if __name__ == "__main__":\n\
-    main()\n\
-    ' > /app/run_app.py
-
-# Run via python script
-CMD ["python", "/app/run_app.py"]
+# Run via python one-liner to avoid all file/shell issues
+CMD python -c "import os, sys; os.system('python manage.py migrate'); os.execlp('gunicorn', 'gunicorn', 'backend.wsgi:application', '--bind', '0.0.0.0:' + os.environ.get('PORT', '8000'))"
