@@ -12,19 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Create entrypoint script directly
-RUN printf '#!/bin/sh\n\
-    set -e\n\
-    \n\
-    echo "Starting application..."\n\
-    echo "Port: $PORT"\n\
-    \n\
-    # Run migrations\n\
-    python manage.py migrate\n\
-    \n\
-    # Start Gunicorn\n\
-    exec gunicorn backend.wsgi:application --bind "0.0.0.0:$PORT"\n\
-    ' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Copy startup script
+COPY run_app.py .
 
-# Run migrations and start server
-CMD ["/app/entrypoint.sh"]
+# Run via python script to avoid shell variable issues
+CMD ["python", "run_app.py"]
