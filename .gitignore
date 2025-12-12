@@ -49,7 +49,7 @@ Thumbs.db
 
 # Local development files (not needed for Railway)
 run_local.bat
-site_manager.bat
+
 site_manager.py
 README_MANAGER.md
 backend/settings.production.py
