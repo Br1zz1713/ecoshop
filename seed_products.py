@@ -11,7 +11,7 @@ from shop.models import Product, Category, ProductImage
 from django.utils.text import slugify
 
 def run():
-    print("Seeding EcoDeviva products with enhanced details...")
+    print("Seeding EcoDeviva products with enhanced details... (v2)")
     
     # Define Categories
     categories_data = [
