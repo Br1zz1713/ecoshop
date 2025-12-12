@@ -1,6 +1,10 @@
 # shop/admin.py
 from django.contrib import admin
-from .models import Category, Product, CartItem, Order, OrderItem
+from .models import Category, Product, CartItem, Order, OrderItem, SiteConfig
+
+@admin.register(SiteConfig)
+class SiteConfigAdmin(admin.ModelAdmin):
+    list_display = ['history_title']
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -9,9 +13,9 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'slug', 'price', 'available', 'created', 'updated']
-    list_filter = ['available', 'created', 'updated']
-    list_editable = ['price', 'available'] 
+    list_display = ['name', 'price', 'available', 'is_bestseller', 'created']
+    list_filter = ['available', 'is_bestseller', 'created', 'updated']
+    list_editable = ['price', 'available', 'is_bestseller'] 
     prepopulated_fields = {'slug': ('name',)}
 
 # Инлайн-класс для отображения товаров внутри заказа
