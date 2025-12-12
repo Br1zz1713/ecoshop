@@ -1,24 +1,21 @@
 @echo off
 chcp 65001 >nul
-title EcoShop - Deploy to Railway
+title EcoShop - Final Deploy
 color 0A
 
 cls
 echo ╔════════════════════════════════════════════════╗
-echo ║     EcoShop - Railway Deploy Tool             ║
+echo ║     EcoShop - Финальный Деплой                ║
 echo ╚════════════════════════════════════════════════╝
 echo.
 
 echo ════════════════════════════════════════════════
-echo   Синхронизация с GitHub...
+echo   Синхронизация...
 echo ════════════════════════════════════════════════
 echo.
 
-git pull origin main --rebase
-if %errorlevel% neq 0 (
-    git pull origin main --no-rebase
-)
-echo ✓ Синхронизировано
+git pull origin main --rebase 2>nul
+if %errorlevel% neq 0 git pull origin main --no-rebase
 echo.
 
 echo ════════════════════════════════════════════════
@@ -27,20 +24,7 @@ echo ═════════════════════════
 echo.
 
 git add .
-echo ✓ Файлы добавлены
-echo.
-
-echo ════════════════════════════════════════════════
-echo   Создание коммита...
-echo ════════════════════════════════════════════════
-echo.
-
-git commit -m "Configure frontend serving for Railway"
-if %errorlevel% neq 0 (
-    echo ⚠ Нет новых изменений
-) else (
-    echo ✓ Коммит создан
-)
+git commit -m "Fix Railway deployment - API only"
 echo.
 
 echo ════════════════════════════════════════════════
@@ -50,23 +34,24 @@ echo.
 
 git push origin main
 if %errorlevel% neq 0 (
-    echo ❌ Ошибка при загрузке!
+    echo ❌ Ошибка!
     pause
     exit
 )
 
 echo.
 echo ════════════════════════════════════════════════
-echo   ✓ УСПЕШНО ЗАГРУЖЕНО!
+echo   ✓ УСПЕШНО!
 echo ════════════════════════════════════════════════
 echo.
-echo Railway автоматически:
-echo 1. Соберет React frontend
-echo 2. Применит миграции
-echo 3. Соберет статические файлы
-echo 4. Запустит сайт
+echo Railway задеплоит изменения за 2-3 минуты
 echo.
-echo Подождите 3-5 минут и обновите страницу
-echo Вы увидите полноценный сайт с интерфейсом!
+echo Ваш API будет доступен по адресу:
+echo https://web-production-4729d.up.railway.app
+echo.
+echo Endpoints:
+echo - /api/products/ - список товаров
+echo - /api/categories/ - категории
+echo - /admin/ - админ панель
 echo.
 pause
