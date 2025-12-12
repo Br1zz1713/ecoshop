@@ -20,7 +20,7 @@ services:
         value: "False"
 
   # 2. Frontend Service (Static Site)
-  - type: static
+  - type: web
     name: frontend
     env: static
     root: frontend
