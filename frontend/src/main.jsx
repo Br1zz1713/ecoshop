@@ -1,8 +1,14 @@
 import { StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
+import axios from 'axios';
+import API_URL from './config';
 import './index.css';
 import App from './App.jsx';
 import { ToastProvider } from './context/ToastContext.jsx';
+
+// Set global API URL for all axios requests
+axios.defaults.baseURL = API_URL;
+
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);

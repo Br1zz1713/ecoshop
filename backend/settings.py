@@ -34,11 +34,12 @@ RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')
 if RAILWAY_STATIC_URL:
     ALLOWED_HOSTS.append(RAILWAY_STATIC_URL)
 
-# Allow all Railway.app subdomains in production
+# Allow all Railway.app and Render.com subdomains in production
 if not DEBUG:
     ALLOWED_HOSTS.extend([
         '.railway.app',
         '.up.railway.app',
+        '.onrender.com',
     ])
 
 
@@ -88,10 +89,11 @@ REST_FRAMEWORK = {
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True
 
-# CSRF Settings for Railway
+# CSRF Settings for Railway & Render
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://*.up.railway.app',
+    'https://*.onrender.com',
 ]
 
 
