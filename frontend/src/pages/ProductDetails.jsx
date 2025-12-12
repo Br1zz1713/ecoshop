@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { ShoppingBag, Star, ArrowLeft, Eye, Leaf } from 'lucide-react';
+import { ShoppingBag, Star, ArrowLeft, Eye, Leaf, X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -12,6 +12,7 @@ export default function ProductDetails() {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeImage, setActiveImage] = useState(null);
+    const [isLightboxOpen, setIsLightboxOpen] = useState(false); // Lightbox state
     const [relatedProducts, setRelatedProducts] = useState([]);
     const { addToCart } = useCart();
     const navigate = useNavigate();
@@ -68,7 +69,12 @@ export default function ProductDetails() {
                 <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius-md)' }}>
                     <div className="gallery-main">
                         {activeImage ? (
-                            <img src={activeImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            <div style={{ position: 'relative', width: '100%', height: '100%', cursor: 'zoom-in' }} onClick={() => setIsLightboxOpen(true)}>
+                                <img src={activeImage} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                <div style={{ position: 'absolute', bottom: '10px', right: '10px', background: 'rgba(0,0,0,0.5)', padding: '0.5rem', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Maximize2 size={20} />
+                                </div>
+                            </div>
                         ) : (
                             <ShoppingBag size={64} color="var(--color-text-muted)" />
                         )}
@@ -198,6 +204,58 @@ export default function ProductDetails() {
                     ))}
                 </div>
             </div>
+            {/* Lightbox Modal */}
+            {isLightboxOpen && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 9999,
+                    background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(5px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+                    onClick={() => setIsLightboxOpen(false)}
+                >
+                    {/* Close Button */}
+                    <button style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
+                        onClick={() => setIsLightboxOpen(false)}>
+                        <X size={32} />
+                    </button>
+
+                    {/* Navigation */}
+                    <button style={{ position: 'absolute', left: '2rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '1rem', borderRadius: '50%' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const currentIndex = displayGallery.indexOf(activeImage);
+                            const prevIndex = (currentIndex - 1 + displayGallery.length) % displayGallery.length;
+                            setActiveImage(displayGallery[prevIndex]);
+                        }}
+                    >
+                        <ChevronLeft size={32} />
+                    </button>
+
+                    <button style={{ position: 'absolute', right: '2rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '1rem', borderRadius: '50%' }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            const currentIndex = displayGallery.indexOf(activeImage);
+                            const nextIndex = (currentIndex + 1) % displayGallery.length;
+                            setActiveImage(displayGallery[nextIndex]);
+                        }}
+                    >
+                        <ChevronRight size={32} />
+                    </button>
+
+                    {/* Image */}
+                    <img
+                        src={activeImage}
+                        alt="Full Screen"
+                        style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', boxShadow: '0 0 20px rgba(0,0,0,0.5)' }}
+                        onClick={(e) => e.stopPropagation()}
+                    />
+
+                    {/* Counter */}
+                    <div style={{ position: 'absolute', bottom: '2rem', color: 'white', fontSize: '1rem' }}>
+                        {displayGallery.indexOf(activeImage) + 1} / {displayGallery.length}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

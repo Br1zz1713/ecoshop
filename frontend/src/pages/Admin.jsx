@@ -506,7 +506,11 @@ export default function Admin() {
                                         type="file"
                                         multiple
                                         onChange={e => {
-                                            const files = Array.from(e.target.files);
+                                            let files = Array.from(e.target.files);
+                                            if (files.length > 10) {
+                                                toast.addToast('Maximum 10 images allowed', 'error');
+                                                files = files.slice(0, 10);
+                                            }
                                             setGalleryFiles(files);
                                             setMainImageIndex(0); // Reset to first
 
@@ -515,7 +519,10 @@ export default function Admin() {
                                         }}
                                         style={{ color: 'var(--color-text-muted)' }}
                                     />
-                                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>* Click an image to set as Main Cover</p>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                        <span>* Click an image to set as Main Cover</span>
+                                        <span style={{ color: galleryFiles.length >= 10 ? 'var(--color-error)' : 'inherit' }}>{galleryFiles.length}/10 selected</span>
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -37,6 +37,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'gallery', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
 
+    def validate(self, attrs):
+        gallery = attrs.get('gallery', [])
+        if len(gallery) > 10:
+            raise serializers.ValidationError("You can upload a maximum of 10 images.")
+        return attrs
+
     def create(self, validated_data):
         gallery_images = validated_data.pop('gallery', [])
         product = Product.objects.create(**validated_data)
