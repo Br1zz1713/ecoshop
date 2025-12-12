@@ -24,9 +24,12 @@ export default function Admin() {
         name: '', slug: '', price: '', description: '', category: '1', available: true, image: null,
         ingredients: '', volume: '', skin_type: '', country: 'Ukraine'
     });
+    const [galleryFiles, setGalleryFiles] = useState([]);
+    const [mainImageIndex, setMainImageIndex] = useState(0);
     const [categoryFormData, setCategoryFormData] = useState({ name: '', slug: '' });
     const [editId, setEditId] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null); // Keep for backward compat or single view, but mostly rely on galleryPreviews
+    const [galleryPreviews, setGalleryPreviews] = useState([]);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -107,9 +110,27 @@ export default function Admin() {
         e.preventDefault();
         const data = new FormData();
         Object.keys(formData).forEach(key => {
-            if (key === 'image' && !formData[key]) return; // Skip empty image
+            if (key === 'image') return; // Handle manually
             data.append(key, formData[key]);
         });
+
+        // Handle Images
+        if (galleryFiles.length > 0) {
+            // Append Main Image
+            if (mainImageIndex >= 0 && mainImageIndex < galleryFiles.length) {
+                data.append('image', galleryFiles[mainImageIndex]);
+            } else if (galleryFiles.length > 0) {
+                data.append('image', galleryFiles[0]); // Default to first
+            }
+
+            // Append Gallery (All images)
+            galleryFiles.forEach(file => {
+                data.append('gallery', file);
+            });
+        } else if (formData.image instanceof File) {
+            // Fallback for single image replacement if galleryFiles empty but image set (legacy/edit mode)
+            data.append('image', formData.image);
+        }
 
         try {
             if (isEditing) {
@@ -120,12 +141,7 @@ export default function Admin() {
                 toast.addToast('Product created successfully', 'success');
             }
             setShowForm(false);
-            setIsEditing(false);
-            setImagePreview(null);
-            setFormData({
-                name: '', slug: '', price: '', description: '', category: '1', available: true, image: null,
-                ingredients: '', volume: '', skin_type: '', country: 'Ukraine'
-            });
+            resetForm();
             fetchData();
         } catch (err) {
             console.error(err);
@@ -176,6 +192,9 @@ export default function Admin() {
     const resetForm = () => {
         setIsEditing(false);
         setImagePreview(null);
+        setGalleryFiles([]);
+        setGalleryPreviews([]);
+        setMainImageIndex(0);
         setFormData({
             name: '', slug: '', price: '', description: '', category: '1', available: true, image: null,
             ingredients: '', volume: '', skin_type: '', country: 'Ukraine'
@@ -447,23 +466,56 @@ export default function Admin() {
 
                                 {/* Image Upload & Preview */}
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Product Image</label>
-                                    {imagePreview && (
-                                        <div style={{ width: '100%', height: '200px', background: '#f0f0f0', borderRadius: 'var(--radius-sm)', overflow: 'hidden', marginBottom: '0.5rem' }}>
-                                            <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    <label style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Product Images (Select Multiple)</label>
+
+                                    {/* Existing Main Image (for edit) */}
+                                    {isEditing && imagePreview && galleryPreviews.length === 0 && (
+                                        <div style={{ marginBottom: '0.5rem' }}>
+                                            <p style={{ fontSize: '0.8rem', color: '#888' }}>Current Main Image:</p>
+                                            <img src={imagePreview} alt="Current" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                         </div>
                                     )}
+
+                                    {/* New Gallery Preview */}
+                                    {galleryPreviews.length > 0 && (
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                            {galleryPreviews.map((src, index) => (
+                                                <div
+                                                    key={index}
+                                                    onClick={() => setMainImageIndex(index)}
+                                                    style={{
+                                                        position: 'relative',
+                                                        width: '100%',
+                                                        height: '80px',
+                                                        borderRadius: '4px',
+                                                        overflow: 'hidden',
+                                                        cursor: 'pointer',
+                                                        border: mainImageIndex === index ? '2px solid var(--color-primary)' : '2px solid transparent'
+                                                    }}
+                                                >
+                                                    <img src={src} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    {mainImageIndex === index && (
+                                                        <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--color-primary)', color: 'white', padding: '2px 4px', fontSize: '0.6rem' }}>Main</div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <input
                                         type="file"
+                                        multiple
                                         onChange={e => {
-                                            const file = e.target.files[0];
-                                            setFormData({ ...formData, image: file });
-                                            if (file) {
-                                                setImagePreview(URL.createObjectURL(file));
-                                            }
+                                            const files = Array.from(e.target.files);
+                                            setGalleryFiles(files);
+                                            setMainImageIndex(0); // Reset to first
+
+                                            const previews = files.map(file => URL.createObjectURL(file));
+                                            setGalleryPreviews(previews);
                                         }}
                                         style={{ color: 'var(--color-text-muted)' }}
                                     />
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>* Click an image to set as Main Cover</p>
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '0.5rem' }}>

@@ -50,8 +50,11 @@ export default function ProductDetails() {
     if (loading) return <div className="container section" style={{ display: 'flex', justifyContent: 'center' }}><div className="animate-pulse">Loading Details...</div></div>;
     if (!product) return <div className="container section">Product not found</div>;
 
-    const gallery = [product.image, ...(product.images?.map(img => img.image) || [])].filter(Boolean);
-    const displayGallery = gallery.length > 0 ? gallery : [null];
+    // Use gallery if available, otherwise fallback to single image
+    const gallery = product.images && product.images.length > 0
+        ? product.images.map(img => img.image)
+        : [product.image].filter(Boolean);
+    const displayGallery = gallery;
 
     return (
         <div className="container section animate-slide-up">

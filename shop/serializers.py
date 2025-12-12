@@ -27,6 +27,36 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
 
 class ProductCreateSerializer(serializers.ModelSerializer):
+    gallery = serializers.ListField(
+        child=serializers.ImageField(),
+        write_only=True,
+        required=False
+    )
+
     class Meta:
         model = Product
-        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
+        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'gallery', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
+
+    def create(self, validated_data):
+        gallery_images = validated_data.pop('gallery', [])
+        product = Product.objects.create(**validated_data)
+        
+        # Create ProductImage instances
+        for image in gallery_images:
+            ProductImage.objects.create(product=product, image=image)
+            
+        return product
+
+    def update(self, instance, validated_data):
+        gallery_images = validated_data.pop('gallery', [])
+        
+        # Update standard fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        
+        # Append new images to gallery
+        for image in gallery_images:
+            ProductImage.objects.create(product=instance, image=image)
+            
+        return instance
