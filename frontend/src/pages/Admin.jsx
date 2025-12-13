@@ -125,21 +125,32 @@ export default function Admin() {
             data.append(key, formData[key]);
         });
 
-        // Handle Images
+        // Calculate offset of existing images vs new images in the preview list
+        const existingImagesCount = galleryPreviews.length - galleryFiles.length;
+
+        // Handle Main Image Logic
         if (galleryFiles.length > 0) {
-            // Append Main Image
-            if (mainImageIndex >= 0 && mainImageIndex < galleryFiles.length) {
-                data.append('image', galleryFiles[mainImageIndex]);
-            } else if (galleryFiles.length > 0) {
-                data.append('image', galleryFiles[0]); // Default to first
+            // New files are present
+
+            // Check if the selected main image is one of the NEW files
+            if (mainImageIndex >= existingImagesCount) {
+                // The user selected a NEW file as the main cover
+                const newFileIndex = mainImageIndex - existingImagesCount;
+                if (newFileIndex >= 0 && newFileIndex < galleryFiles.length) {
+                    data.append('image', galleryFiles[newFileIndex]);
+                }
+            } else {
+                // The user selected an OLD file as main (or didn't change selection)
+                // In this case, we do NOT send a new 'image' file, so the backend keeps the old one.
+                // However, if the logic dictates we need to *support* re-setting an old image as new cover,
+                // we'd need backend logic for that. For now, assuming "update" keeps old cover if no new 'image' sent.
             }
 
-            // Append Gallery (All images)
+            // Append Gallery (All NEW images)
             galleryFiles.forEach(file => {
                 data.append('gallery', file);
             });
         } else if (formData.image instanceof File) {
-            // Fallback for single image replacement if galleryFiles empty but image set (legacy/edit mode)
             data.append('image', formData.image);
         }
 
@@ -156,7 +167,17 @@ export default function Admin() {
             fetchData();
         } catch (err) {
             console.error(err);
-            toast.addToast('Operation failed', 'error');
+            // Extract error message from backend response
+            let msg = 'Operation failed';
+            if (err.response && err.response.data) {
+                // Use the first error key/message found
+                const keys = Object.keys(err.response.data);
+                if (keys.length > 0) {
+                    const firstError = err.response.data[keys[0]];
+                    msg = `${keys[0]}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+                }
+            }
+            toast.addToast(msg, 'error');
         }
     };
 
