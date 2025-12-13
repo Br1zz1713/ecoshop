@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X } from 'lucide-react';
+import { ShoppingBag, Sprout, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -59,7 +59,7 @@ export default function Navbar() {
             <div className="container flex items-center justify-between" style={{ padding: '1rem' }}>
                 {/* Brand */}
                 <Link to="/" className="flex items-center gap-sm" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 700 }}>
-                    <img src="/logo.png" alt="EcoShop" style={{ height: '32px', width: 'auto' }} />
+                    <Sprout size={28} />
                     <span>{t('nav.brand')}</span>
                 </Link>
 
