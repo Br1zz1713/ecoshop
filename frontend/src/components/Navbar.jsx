@@ -59,7 +59,7 @@ export default function Navbar() {
             <div className="container flex items-center justify-between" style={{ padding: '1rem' }}>
                 {/* Brand */}
                 <Link to="/" className="flex items-center gap-sm" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 700 }}>
-                    <Logo />
+                    <img src="/logo.png" alt="EcoShop" style={{ height: '32px', width: 'auto' }} />
                     <span>{t('nav.brand')}</span>
                 </Link>
 
