@@ -35,22 +35,18 @@ def api_root(request):
         }
     })
 
-def serve_react(request, path=''):
-    """Serve React frontend"""
-    frontend_path = os.path.join(settings.BASE_DIR, 'frontend', 'dist')
-    if os.path.exists(frontend_path):
-        if path and os.path.exists(os.path.join(frontend_path, path)):
-            return serve(request, path, document_root=frontend_path)
-        return serve(request, 'index.html', document_root=frontend_path)
-    return api_root(request)
+
+def ping(request):
+    return JsonResponse({'status': 'pong', 'message': 'Backend is reachable!'})
 
 urlpatterns = [
+    path('ping/', ping, name='ping'),  # Debug endpoint
     path('api-root/', api_root, name='api-root'),
     path('admin/', admin.site.urls),
     path('api/', include('shop.urls', namespace='shop')),
     path('api/', include('accounts.urls')),
     # Serve React app for all other routes
-    re_path(r'^(?!api/|admin/|static/|media/).*$', serve_react),
+    re_path(r'^(?!api/|admin/|static/|media/|ping/).*$', serve_react),
 ]
 
 if settings.DEBUG:
