@@ -16,6 +16,15 @@ export default function Home() {
 
     const visibleCategories = categories.filter(c => c.is_visible_on_main);
 
+    // Static images mapping to prevent broken images on deploy
+    const CATEGORY_IMAGES = {
+        'Body Care': 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800',
+        'Face Care': 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800',
+        'Eco Sets': 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=800',
+        'Hair Care': 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800',
+        'Zero Waste': 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=800'
+    };
+
     return (
         <div>
             {/* 1. Hero Section (Lavender/Clean) */}
@@ -59,7 +68,7 @@ export default function Home() {
                             <CategoryCard
                                 key={cat.id}
                                 title={cat.name}
-                                img={cat.featured_product_image || 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=800'}
+                                img={CATEGORY_IMAGES[cat.name] || cat.featured_product_image || 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=800'}
                                 link={`/shop?category=${cat.id}`}
                             />
                         ))}
