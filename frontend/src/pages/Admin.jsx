@@ -481,59 +481,123 @@ export default function Admin() {
 
                                     {/* Existing Main Image (for edit) */}
                                     {isEditing && imagePreview && galleryPreviews.length === 0 && (
-                                        <div style={{ marginBottom: '0.5rem' }}>
+                                        <div style={{ marginBottom: '0.5rem', position: 'relative', display: 'inline-block' }}>
                                             <p style={{ fontSize: '0.8rem', color: '#888' }}>Current Main Image:</p>
                                             <img src={imagePreview} alt="Current" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
                                         </div>
                                     )}
 
-                                    {/* New Gallery Preview */}
-                                    {galleryPreviews.length > 0 && (
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                            {galleryPreviews.map((src, index) => (
-                                                <div
-                                                    key={index}
+                                    {/* Unified Gallery Grid */}
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                        {/* Existing Images */}
+                                        {galleryPreviews.map((src, index) => (
+                                            <div
+                                                key={`preview-${index}`}
+                                                style={{
+                                                    position: 'relative',
+                                                    width: '80px',
+                                                    height: '80px',
+                                                    borderRadius: '4px',
+                                                    overflow: 'hidden',
+                                                    border: mainImageIndex === index ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'
+                                                }}
+                                            >
+                                                <img
+                                                    src={src}
+                                                    alt={`Preview ${index}`}
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
                                                     onClick={() => setMainImageIndex(index)}
+                                                />
+                                                {mainImageIndex === index && (
+                                                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(85, 107, 47, 0.8)', color: 'white', padding: '2px', fontSize: '0.6rem', textAlign: 'center' }}>Main</div>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        // Remove from previews
+                                                        const newPreviews = [...galleryPreviews];
+                                                        newPreviews.splice(index, 1);
+                                                        setGalleryPreviews(newPreviews);
+
+                                                        // Remove from files if it's a new file
+                                                        // Note: We need to map previews to files correctly or handle separately.
+                                                        // For simplicity in this patch: we reconstruct the file list.
+                                                        // BUT: existing images don't have files.
+                                                        // Correct logic:
+                                                        if (index < (galleryPreviews.length - galleryFiles.length)) {
+                                                            // It's an existing backend image. We might need to track deletion ID.
+                                                            // For now, UI removal. API update needed for partial delete.
+                                                        } else {
+                                                            // It's a newly added file
+                                                            const fileIndex = index - (galleryPreviews.length - galleryFiles.length);
+                                                            const newFiles = [...galleryFiles];
+                                                            newFiles.splice(fileIndex, 1);
+                                                            setGalleryFiles(newFiles);
+                                                        }
+                                                    }}
                                                     style={{
-                                                        position: 'relative',
-                                                        width: '80px',
-                                                        height: '80px',
-                                                        borderRadius: '4px',
-                                                        overflow: 'hidden',
+                                                        position: 'absolute',
+                                                        top: '2px',
+                                                        right: '2px',
+                                                        background: 'rgba(0,0,0,0.6)',
+                                                        color: '#fff',
+                                                        borderRadius: '50%',
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        border: 'none',
                                                         cursor: 'pointer',
-                                                        border: mainImageIndex === index ? '2px solid var(--color-primary)' : '2px solid transparent'
+                                                        zIndex: 2
                                                     }}
                                                 >
-                                                    <img src={src} alt={`Preview ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    {mainImageIndex === index && (
-                                                        <div style={{ position: 'absolute', top: 0, right: 0, background: 'var(--color-primary)', color: 'white', padding: '2px 4px', fontSize: '0.6rem' }}>Main</div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        ))}
 
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={e => {
-                                            let files = Array.from(e.target.files);
-                                            if (files.length > 10) {
-                                                toast.addToast('Maximum 10 images allowed', 'error');
-                                                files = files.slice(0, 10);
-                                            }
-                                            setGalleryFiles(files);
-                                            setMainImageIndex(0); // Reset to first
+                                        {/* Add Button */}
+                                        <label style={{
+                                            width: '80px', height: '80px',
+                                            borderRadius: '4px',
+                                            border: '2px dashed var(--color-border)',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                            cursor: 'pointer',
+                                            color: 'var(--color-text-muted)',
+                                            fontSize: '0.7rem',
+                                            textAlign: 'center'
+                                        }}>
+                                            <Plus size={20} />
+                                            <span>Add Photo</span>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={e => {
+                                                    const newFiles = Array.from(e.target.files);
+                                                    const totalFiles = galleryFiles.length + newFiles.length;
 
-                                            const previews = files.map(file => URL.createObjectURL(file));
-                                            setGalleryPreviews(previews);
-                                        }}
-                                        style={{ color: 'var(--color-text-muted)', width: '100%' }}
-                                    />
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                                        <span>* Click an image to set as Main Cover</span>
-                                        <span style={{ color: galleryFiles.length >= 10 ? 'var(--color-error)' : 'inherit' }}>{galleryFiles.length}/10 selected</span>
+                                                    if (totalFiles > 10) {
+                                                        toast.addToast('Maximum 10 images allowed', 'error');
+                                                        return;
+                                                    }
+
+                                                    // Append new files
+                                                    setGalleryFiles([...galleryFiles, ...newFiles]);
+
+                                                    // Append new previews
+                                                    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+                                                    setGalleryPreviews([...galleryPreviews, ...newPreviews]);
+                                                }}
+                                                style={{ display: 'none' }}
+                                            />
+                                        </label>
+                                    </div>
+
+                                    <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                                        {galleryFiles.length > 0 ? `${galleryFiles.length} new files ready to upload.` : 'No new files selected.'}
                                     </div>
                                 </div>
 
