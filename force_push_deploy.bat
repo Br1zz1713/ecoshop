@@ -1,32 +1,32 @@
 @echo off
 chcp 65001 >nul
-title EcoShop - Update Frontend
-color 0B
+title EcoShop - Remove Widget
+color 0C
 
 cls
 echo ╔════════════════════════════════════════╗
-echo ║   UPDATE: ADDING WIDGET TO SITE       ║
+echo ║   ROLLBACK: REMOVING WIDGET            ║
 echo ╚════════════════════════════════════════╝
 echo.
-echo Мы добавляем блок "Предложения по улучшению"
-echo на главную страницу Админки.
+echo Удаляем блок "Предложения по улучшению"
+echo и откатываем все изменения в коде.
 echo.
 
-echo 📦 1. Добавление всех изменений...
+echo 🗑️ 1. Удаление файла компонента...
+if exist "frontend\src\components\SuggestionsWidget.jsx" del "frontend\src\components\SuggestionsWidget.jsx"
+
+echo 📦 2. Фиксация удаления в Git...
 git add .
+git commit -m "Remove Suggestions Widget and revert backend changes"
 
-echo 💾 2. Создание коммита...
-git commit -m "Add Suggestions Widget to Admin Dashboard"
-
-echo 🚀 3. Загрузка на GitHub...
+echo 🚀 3. Отправка изменений...
 git push origin main
 
 echo.
 echo ════════════════════════════════════════
-echo   ✅ ОТПРАВЛЕНО!
+echo   ✅ ГОТОВО!
 echo ════════════════════════════════════════
 echo.
-echo Vercel (Frontend) увидит изменения и обновит сайт.
-echo Это займет около 1-2 минут.
+echo Изменения отправлены. Vercel и Railway обновятся автоматически.
 echo.
 pause
