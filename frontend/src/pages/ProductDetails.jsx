@@ -208,52 +208,132 @@ export default function ProductDetails() {
             {isLightboxOpen && (
                 <div style={{
                     position: 'fixed', inset: 0, zIndex: 9999,
-                    background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(5px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    background: 'rgba(0,0,0,0.97)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'zoom-out'
                 }}
                     onClick={() => setIsLightboxOpen(false)}
                 >
-                    {/* Close Button */}
-                    <button style={{ position: 'absolute', top: '2rem', right: '2rem', background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}
-                        onClick={() => setIsLightboxOpen(false)}>
-                        <X size={32} />
+                    {/* Close Button - Minimal */}
+                    <button
+                        style={{
+                            position: 'absolute',
+                            top: '1.5rem',
+                            right: '1.5rem',
+                            background: 'rgba(255,255,255,0.1)',
+                            border: 'none',
+                            color: 'white',
+                            cursor: 'pointer',
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s',
+                            backdropFilter: 'blur(10px)'
+                        }}
+                        onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                        onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                        onClick={() => setIsLightboxOpen(false)}
+                    >
+                        <X size={20} />
                     </button>
 
-                    {/* Navigation */}
-                    <button style={{ position: 'absolute', left: '2rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '1rem', borderRadius: '50%' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const currentIndex = displayGallery.indexOf(activeImage);
-                            const prevIndex = (currentIndex - 1 + displayGallery.length) % displayGallery.length;
-                            setActiveImage(displayGallery[prevIndex]);
-                        }}
-                    >
-                        <ChevronLeft size={32} />
-                    </button>
+                    {/* Navigation - Minimal arrows */}
+                    {displayGallery.length > 1 && (
+                        <>
+                            <button
+                                style={{
+                                    position: 'absolute',
+                                    left: '1.5rem',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                                onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentIndex = displayGallery.indexOf(activeImage);
+                                    const prevIndex = (currentIndex - 1 + displayGallery.length) % displayGallery.length;
+                                    setActiveImage(displayGallery[prevIndex]);
+                                }}
+                            >
+                                <ChevronLeft size={20} />
+                            </button>
 
-                    <button style={{ position: 'absolute', right: '2rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '1rem', borderRadius: '50%' }}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            const currentIndex = displayGallery.indexOf(activeImage);
-                            const nextIndex = (currentIndex + 1) % displayGallery.length;
-                            setActiveImage(displayGallery[nextIndex]);
-                        }}
-                    >
-                        <ChevronRight size={32} />
-                    </button>
+                            <button
+                                style={{
+                                    position: 'absolute',
+                                    right: '1.5rem',
+                                    background: 'rgba(255,255,255,0.1)',
+                                    border: 'none',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s',
+                                    backdropFilter: 'blur(10px)'
+                                }}
+                                onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.2)'}
+                                onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const currentIndex = displayGallery.indexOf(activeImage);
+                                    const nextIndex = (currentIndex + 1) % displayGallery.length;
+                                    setActiveImage(displayGallery[nextIndex]);
+                                }}
+                            >
+                                <ChevronRight size={20} />
+                            </button>
+                        </>
+                    )}
 
                     {/* Image */}
                     <img
                         src={activeImage}
                         alt="Full Screen"
-                        style={{ maxWidth: '90%', maxHeight: '90%', objectFit: 'contain', boxShadow: '0 0 20px rgba(0,0,0,0.5)' }}
+                        style={{
+                            maxWidth: '90%',
+                            maxHeight: '90%',
+                            objectFit: 'contain',
+                            cursor: 'default'
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     />
 
-                    {/* Counter */}
-                    <div style={{ position: 'absolute', bottom: '2rem', color: 'white', fontSize: '1rem' }}>
-                        {displayGallery.indexOf(activeImage) + 1} / {displayGallery.length}
-                    </div>
+                    {/* Counter - Minimal */}
+                    {displayGallery.length > 1 && (
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '1.5rem',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: 'rgba(255,255,255,0.1)',
+                            backdropFilter: 'blur(10px)',
+                            color: 'white',
+                            fontSize: '0.85rem',
+                            padding: '0.4rem 0.8rem',
+                            borderRadius: '20px',
+                            fontWeight: '500'
+                        }}>
+                            {displayGallery.indexOf(activeImage) + 1} / {displayGallery.length}
+                        </div>
+                    )}
                 </div>
             )}
         </div>

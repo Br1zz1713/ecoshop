@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const LanguageContext = createContext();
 
@@ -452,7 +452,25 @@ const translations = {
 };
 
 export function LanguageProvider({ children }) {
-    const [language, setLanguage] = useState('en');
+    // Load language from localStorage or default to 'en'
+    const [language, setLanguage] = useState(() => {
+        try {
+            const saved = localStorage.getItem('language');
+            return saved || 'en';
+        } catch (e) {
+            console.error('Failed to load language from localStorage', e);
+            return 'en';
+        }
+    });
+
+    // Save language to localStorage whenever it changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('language', language);
+        } catch (e) {
+            console.error('Failed to save language to localStorage', e);
+        }
+    }, [language]);
 
     const t = (key) => {
         const keys = key.split('.');

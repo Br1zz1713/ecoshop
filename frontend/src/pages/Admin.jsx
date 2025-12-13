@@ -101,6 +101,17 @@ export default function Admin() {
             image: null // We don't prepopulate file input
         });
         setImagePreview(product.image);
+
+        // Load existing gallery images
+        if (product.images && product.images.length > 0) {
+            const existingPreviews = product.images.map(img => img.image);
+            setGalleryPreviews(existingPreviews);
+            setGalleryFiles([]); // Clear file objects (we only have URLs)
+        } else {
+            setGalleryPreviews([]);
+            setGalleryFiles([]);
+        }
+
         setEditId(product.id);
         setIsEditing(true);
         setShowForm(true);
@@ -478,14 +489,14 @@ export default function Admin() {
 
                                     {/* New Gallery Preview */}
                                     {galleryPreviews.length > 0 && (
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
                                             {galleryPreviews.map((src, index) => (
                                                 <div
                                                     key={index}
                                                     onClick={() => setMainImageIndex(index)}
                                                     style={{
                                                         position: 'relative',
-                                                        width: '100%',
+                                                        width: '80px',
                                                         height: '80px',
                                                         borderRadius: '4px',
                                                         overflow: 'hidden',
@@ -505,6 +516,7 @@ export default function Admin() {
                                     <input
                                         type="file"
                                         multiple
+                                        accept="image/*"
                                         onChange={e => {
                                             let files = Array.from(e.target.files);
                                             if (files.length > 10) {
@@ -517,7 +529,7 @@ export default function Admin() {
                                             const previews = files.map(file => URL.createObjectURL(file));
                                             setGalleryPreviews(previews);
                                         }}
-                                        style={{ color: 'var(--color-text-muted)' }}
+                                        style={{ color: 'var(--color-text-muted)', width: '100%' }}
                                     />
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                                         <span>* Click an image to set as Main Cover</span>
