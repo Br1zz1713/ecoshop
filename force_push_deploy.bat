@@ -1,22 +1,21 @@
 @echo off
 chcp 65001 >nul
-title Force Update Railway
+title Force Update Railway - Crash Fix
 color 0D
 
 cls
 echo ╔════════════════════════════════════════╗
-echo ║   Force Update - Railway Deployment   ║
+echo ║   FORCE UPDATE: FIX URL CRASH         ║
 echo ╚════════════════════════════════════════╝
 echo.
-echo Этот скрипт принудительно отправит ВСЕ изменения на сервер.
-echo Это исправит проблему, если Railway не видит последние файлы.
+echo Этот скрипт отправит исправление ошибки (serve_react).
 echo.
 
-echo 📦 1. Добавление всех файлов...
+echo 📦 1. Добавление файлов...
 git add .
 
-echo 💾 2. Создание коммита...
-git commit -m "FORCE UPDATE: Fix backend routing and middleware"
+echo 💾 2. Создание коммита (Fix URL crash)...
+git commit -m "CRITICAL FIX: Restore serve_react function in urls.py"
 if %errorlevel% neq 0 (
     echo Изменений нет или ошибка коммита. Продолжаем пуш...
 )
@@ -26,13 +25,12 @@ git push origin main
 
 echo.
 echo ════════════════════════════════════════
-echo   ✅ ОБНОВЛЕНИЕ ОТПРАВЛЕНО!
+echo   ✅ ИСПРАВЛЕНИЕ ОТПРАВЛЕНО!
 echo ════════════════════════════════════════
 echo.
-echo Railway автоматически пересоберет проект (2-3 минуты).
-echo.
-echo ПОСЛЕ ПЕРЕСБОРКИ (когда статус будет Active):
-echo 1. Откройте сайт.
-echo 2. Нажмите Ctrl+F5 несколько раз.
+echo Railway сейчас пересоберет проект.
+echo Как только статус станет "Active" (зеленый):
+echo 1. Проверьте /ping/
+echo 2. Проверьте админку
 echo.
 pause
