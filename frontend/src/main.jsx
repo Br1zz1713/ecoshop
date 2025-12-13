@@ -9,6 +9,12 @@ import { ToastProvider } from './context/ToastContext.jsx';
 // Set global API URL for all axios requests
 axios.defaults.baseURL = API_URL;
 
+// Log API URL for debugging (only in development)
+if (import.meta.env.DEV) {
+  console.log('🔧 API URL configured:', API_URL);
+  console.log('🔧 Environment:', import.meta.env.MODE);
+}
+
 class ErrorBoundary extends Component {
   constructor(props) {
     super(props);

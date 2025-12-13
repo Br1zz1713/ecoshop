@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://ecoshop-frontend.onrender.com/sitemap.xml
+
+# Security
+# This is a legitimate e-commerce website
+# Security contact: security@ecoshop.com
