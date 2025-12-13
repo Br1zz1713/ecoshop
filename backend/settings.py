@@ -64,8 +64,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add Whitenoise here
-    'backend.security_middleware.SecurityHeadersMiddleware',  # Custom security headers
-    'csp.middleware.CSPMiddleware',  # Content Security Policy
+    # 'backend.security_middleware.SecurityHeadersMiddleware',  # Custom security headers (DISABLED FOR DEBUG)
+    # 'csp.middleware.CSPMiddleware',  # Content Security Policy (DISABLED FOR DEBUG)
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

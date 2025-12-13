@@ -1,36 +1,32 @@
 @echo off
 chcp 65001 >nul
-title Force Update Railway - Crash Fix
-color 0D
+title Force Update - Disable Security Checks
+color 0E
 
 cls
 echo ╔════════════════════════════════════════╗
-echo ║   FORCE UPDATE: FIX URL CRASH         ║
+echo ║   DEBUG MODE: DISABLE SECURITY CHECKS ║
 echo ╚════════════════════════════════════════╝
 echo.
-echo Этот скрипт отправит исправление ошибки (serve_react).
+echo Мы временно отключаем строгие проверки безопасности (CSP, Headers),
+echo чтобы найти причину блокировки соединения.
 echo.
 
-echo 📦 1. Добавление файлов...
+echo 📦 1. Добавление изменений...
 git add .
 
-echo 💾 2. Создание коммита (Fix URL crash)...
-git commit -m "CRITICAL FIX: Restore serve_react function in urls.py"
-if %errorlevel% neq 0 (
-    echo Изменений нет или ошибка коммита. Продолжаем пуш...
-)
+echo 💾 2. Создание коммита...
+git commit -m "DEBUG: Disable SecurityMiddleware and CSPMiddleware"
 
 echo 🚀 3. Загрузка на GitHub...
 git push origin main
 
 echo.
 echo ════════════════════════════════════════
-echo   ✅ ИСПРАВЛЕНИЕ ОТПРАВЛЕНО!
+echo   ✅ ОТПРАВЛЕНО!
 echo ════════════════════════════════════════
 echo.
-echo Railway сейчас пересоберет проект.
-echo Как только статус станет "Active" (зеленый):
-echo 1. Проверьте /ping/
-echo 2. Проверьте админку
+echo Ждем обновления Railway (2-3 мин).
+echo Если после этого заработает - значит проблема была в слишком строгих правилах.
 echo.
 pause
