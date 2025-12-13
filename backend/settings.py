@@ -90,13 +90,15 @@ REST_FRAMEWORK = {
 
 # Разрешаем запросы с фронтенд-порта (3000)
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
 
 # CSRF Settings for Railway & Render
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://*.up.railway.app',
     'https://*.onrender.com',
+    'https://*.vercel.app',
+    'https://ecoshop-alpha.vercel.app',
 ]
 
 
