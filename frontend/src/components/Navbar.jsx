@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Sprout, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X } from 'lucide-react';
+import { ShoppingBag, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -21,12 +21,45 @@ export default function Navbar() {
 
     const isActive = (path) => location.pathname === path;
 
+    // Custom Logo SVG Component
+    const Logo = () => (
+        <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ flexShrink: 0 }}
+        >
+            <path
+                d="M12 2C12 2 8 6 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 6 12 2 12 2Z"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+            />
+            <path
+                d="M12 14V22"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+            />
+            <path
+                d="M8 18C8 18 9 17 12 17C15 17 16 18 16 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+            />
+        </svg>
+    );
+
     return (
         <nav className="glass-nav sticky-nav">
             <div className="container flex items-center justify-between" style={{ padding: '1rem' }}>
                 {/* Brand */}
                 <Link to="/" className="flex items-center gap-sm" style={{ color: 'var(--color-primary)', fontFamily: 'var(--font-serif)', fontSize: '1.5rem', fontWeight: 700 }}>
-                    <Sprout size={28} />
+                    <Logo />
                     <span>{t('nav.brand')}</span>
                 </Link>
 

@@ -33,12 +33,11 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-set /p COMMIT_MSG="💬 Введите описание изменений: "
-if "%COMMIT_MSG%"=="" (
-    echo ⚠ Описание не может быть пустым!
-    pause
-    exit /b 1
-)
+echo 💡 Предложенное описание:
+echo "Added 11 improvements: theme/language persistence, cart validation, toast notifications, error handling, custom SVG logo"
+echo.
+set /p COMMIT_MSG="💬 Введите описание (Enter для предложенного): "
+if "%COMMIT_MSG%"=="" set COMMIT_MSG=Added 11 improvements: theme/language persistence, cart validation, toast notifications, error handling, custom SVG logo
 
 echo.
 echo 💾 Создание коммита...
@@ -66,6 +65,14 @@ echo ═════════════════════════
 echo.
 echo ✓ Изменения загружены в репозиторий
 echo ✓ Render автоматически задеплоит изменения
+echo.
+echo 📦 Что было добавлено:
+echo   • Theme persistence (localStorage)
+echo   • Language persistence (localStorage)
+echo   • Cart validation (quantity limits)
+echo   • Toast notifications (all cart actions)
+echo   • Error boundary (crash protection)
+echo   • Custom SVG logo (Navbar)
 echo.
 echo ⏱ Подождите 2-3 минуты для деплоя
 echo 🌐 Затем обновите страницу сайта
