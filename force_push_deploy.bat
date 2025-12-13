@@ -1,25 +1,22 @@
 @echo off
 chcp 65001 >nul
-title EcoShop - Remove Widget
-color 0C
+title EcoShop - Fix Admin Colors
+color 0B
 
 cls
 echo ╔════════════════════════════════════════╗
-echo ║   ROLLBACK: REMOVING WIDGET            ║
+echo ║   UPDATE: FIX ADMIN TEXT COLORS       ║
 echo ╚════════════════════════════════════════╝
 echo.
-echo Удаляем блок "Предложения по улучшению"
-echo и откатываем все изменения в коде.
+echo Исправляем цвет цифр в "Analytics Overview".
+echo Теперь они будут светлыми в темной теме.
 echo.
 
-echo 🗑️ 1. Удаление файла компонента...
-if exist "frontend\src\components\SuggestionsWidget.jsx" del "frontend\src\components\SuggestionsWidget.jsx"
-
-echo 📦 2. Фиксация удаления в Git...
+echo 📦 1. Добавление изменений...
 git add .
-git commit -m "Remove Suggestions Widget and revert backend changes"
+git commit -m "Fix Admin Dashboard stat colors for dark mode"
 
-echo 🚀 3. Отправка изменений...
+echo 🚀 2. Отправка изменений...
 git push origin main
 
 echo.
@@ -27,6 +24,6 @@ echo ═════════════════════════
 echo   ✅ ГОТОВО!
 echo ════════════════════════════════════════
 echo.
-echo Изменения отправлены. Vercel и Railway обновятся автоматически.
+echo Vercel обновит Frontend через минуту.
 echo.
 pause

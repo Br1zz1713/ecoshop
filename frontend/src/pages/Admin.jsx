@@ -663,7 +663,7 @@ function StatCard({ icon, title, value, color }) {
             </div>
             <div>
                 <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>{title}</p>
-                <h4 style={{ fontSize: '1.5rem', color: '#1f2937' }}>{value}</h4>
+                <h4 style={{ fontSize: '1.5rem', color: 'var(--color-text)', fontWeight: 600 }}>{value}</h4>
             </div>
         </div>
     );
