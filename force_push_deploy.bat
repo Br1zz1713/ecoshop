@@ -1,22 +1,22 @@
 @echo off
 chcp 65001 >nul
-title Force Update - Disable Security Checks
-color 0E
+title EcoShop - Update Frontend
+color 0B
 
 cls
 echo ╔════════════════════════════════════════╗
-echo ║   DEBUG MODE: DISABLE SECURITY CHECKS ║
+echo ║   UPDATE: ADDING WIDGET TO SITE       ║
 echo ╚════════════════════════════════════════╝
 echo.
-echo Мы временно отключаем строгие проверки безопасности (CSP, Headers),
-echo чтобы найти причину блокировки соединения.
+echo Мы добавляем блок "Предложения по улучшению"
+echo на главную страницу Админки.
 echo.
 
-echo 📦 1. Добавление изменений...
+echo 📦 1. Добавление всех изменений...
 git add .
 
 echo 💾 2. Создание коммита...
-git commit -m "DEBUG: Disable SecurityMiddleware and CSPMiddleware"
+git commit -m "Add Suggestions Widget to Admin Dashboard"
 
 echo 🚀 3. Загрузка на GitHub...
 git push origin main
@@ -26,7 +26,7 @@ echo ═════════════════════════
 echo   ✅ ОТПРАВЛЕНО!
 echo ════════════════════════════════════════
 echo.
-echo Ждем обновления Railway (2-3 мин).
-echo Если после этого заработает - значит проблема была в слишком строгих правилах.
+echo Vercel (Frontend) увидит изменения и обновит сайт.
+echo Это займет около 1-2 минут.
 echo.
 pause

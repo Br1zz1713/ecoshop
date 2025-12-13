@@ -4,6 +4,7 @@ import { LayoutDashboard, Plus, LogOut, Package, TrendingUp, DollarSign, Eye, Ey
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import SuggestionsWidget from '../components/SuggestionsWidget';
 
 export default function Admin() {
     const { user, logout, loading: authLoading } = useAuth();
@@ -295,6 +296,9 @@ export default function Admin() {
                             <StatCard icon={<DollarSign />} title="Total Revenue" value={`₴${analytics?.total_revenue}`} color="#eab308" />
                             <StatCard icon={<Package />} title="Total Products" value={analytics?.total_products} color="#a855f7" />
                         </div>
+
+                        {/* Suggestions Widget */}
+                        <SuggestionsWidget />
 
                         {/* Top Products */}
                         <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius-md)' }}>
