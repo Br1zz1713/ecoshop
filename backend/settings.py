@@ -90,9 +90,11 @@ REST_FRAMEWORK = {
 
 # Разрешаем запросы с фронтенд-порта (3000)
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True') == 'True'
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = '*'
 
-# CSRF Settings for Railway & Render
+# CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://*.up.railway.app',
