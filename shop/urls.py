@@ -12,7 +12,8 @@ from .views import (
     CategoryUpdateView,
     CategoryDeleteView,
     CategoryDeleteView,
-    CategoryListView
+    CategoryListView,
+    OrderCreateView
 )
 
 app_name = 'shop'
@@ -25,6 +26,7 @@ urlpatterns = [
     path('products/<int:id>/delete/', ProductDeleteView.as_view(), name='product_delete'),
     path('products/<int:id>/view/', increment_product_view, name='product_view'),
     path('analytics/', AnalyticsView.as_view(), name='analytics'),
+    path('orders/create/', OrderCreateView.as_view(), name='order_create'),
     
     # Categories
     path('categories/', CategoryListView.as_view(), name='category_list'),

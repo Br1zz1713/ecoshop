@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, CreditCard, Truck } from 'lucide-react';
@@ -20,13 +20,78 @@ export default function Checkout() {
         cardNumber: '', expiry: '', cvc: ''
     });
 
-    const handlePlaceOrder = () => {
-        // Simulate API Call
-        setTimeout(() => {
-            clearCart();
-            setStep(3);
-            toast.addToast(t('checkout.success_title'), 'success');
-        }, 1500);
+    const handlePlaceOrder = async (details) => {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/shop/orders/create/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    items: items.map(item => ({
+                        product: item.id,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    // Use shipping info from state
+                    first_name: shipping.fullName.split(' ')[0] || 'Guest',
+                    last_name: shipping.fullName.split(' ').slice(1).join(' ') || 'User',
+                    email: 'guest@example.com', // Placeholder or add input
+                    address: shipping.address,
+                    city: shipping.city,
+                    paid: true
+                }),
+            });
+
+            if (response.ok) {
+                clearCart();
+                setStep(3);
+                toast.addToast(t('checkout.success_title'), 'success');
+            } else {
+                toast.addToast('Order failed', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            toast.addToast('Network error', 'error');
+        }
+    };
+
+    useEffect(() => {
+        if (step === 2) {
+            const scriptId = 'paypal-sdk';
+            if (!document.getElementById(scriptId)) {
+                const script = document.createElement('script');
+                script.id = scriptId;
+                script.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD"; // Use 'test' or valid sandbox ID
+                script.async = true;
+                script.onload = renderPayPalButtons;
+                document.body.appendChild(script);
+            } else {
+                renderPayPalButtons();
+            }
+        }
+    }, [step]);
+
+    const renderPayPalButtons = () => {
+        if (window.paypal && document.getElementById('paypal-button-container')) {
+            document.getElementById('paypal-button-container').innerHTML = ''; // Clear previous
+            window.paypal.Buttons({
+                createOrder: (data, actions) => {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: total.toFixed(2)
+                            }
+                        }]
+                    });
+                },
+                onApprove: (data, actions) => {
+                    return actions.order.capture().then((details) => {
+                        handlePlaceOrder(details);
+                    });
+                }
+            }).render('#paypal-button-container');
+        }
     };
 
     if (items.length === 0 && step !== 3) {
@@ -72,43 +137,9 @@ export default function Checkout() {
 
                         {step === 2 && (
                             <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div style={{ gridColumn: 'span 2', padding: '1rem', background: 'rgba(125,125,125,0.1)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem', border: '1px solid var(--color-border)' }}>
-                                    <CreditCard /> <span>Credit Card (Secure)</span>
-                                </div>
-                                <input
-                                    className="input-field"
-                                    placeholder={t('checkout.card_number')}
-                                    style={{ gridColumn: 'span 2' }}
-                                    value={payment.cardNumber}
-                                    onChange={e => setPayment({ ...payment, cardNumber: e.target.value })}
-                                    required
-                                    pattern="[0-9]{16}"
-                                    maxLength="16"
-                                    title="Enter 16-digit card number"
-                                />
-                                <input
-                                    className="input-field"
-                                    placeholder={t('checkout.expiry')}
-                                    value={payment.expiry}
-                                    onChange={e => setPayment({ ...payment, expiry: e.target.value })}
-                                    required
-                                    pattern="(0[1-9]|1[0-2])\/[0-9]{2}"
-                                    maxLength="5"
-                                    title="MM/YY format"
-                                />
-                                <input
-                                    className="input-field"
-                                    placeholder={t('checkout.cvv')}
-                                    value={payment.cvc}
-                                    onChange={e => setPayment({ ...payment, cvc: e.target.value })}
-                                    required
-                                    pattern="[0-9]{3,4}"
-                                    maxLength="4"
-                                    title="3 or 4 digit CVV"
-                                />
+                                <div id="paypal-button-container" style={{ gridColumn: 'span 2', marginTop: '1rem', minHeight: '150px' }}></div>
                                 <div style={{ gridColumn: 'span 2', marginTop: '1rem', display: 'flex', gap: '1rem' }}>
                                     <button className="btn" style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} onClick={() => setStep(1)}>Back</button>
-                                    <button className="btn" style={{ flex: 1 }} onClick={handlePlaceOrder}>{t('checkout.place_order')} ₴{total.toFixed(2)}</button>
                                 </div>
                             </div>
                         )}
@@ -117,6 +148,7 @@ export default function Checkout() {
 
                 {/* Order Summary Column */}
                 <div>
+
                     <div className="glass-panel order-summary" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', position: 'sticky', top: '100px' }}>
                         <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem', color: 'var(--color-text)' }}>{t('cart.title')}</h3>
                         {items.map(item => (
@@ -135,20 +167,22 @@ export default function Checkout() {
             </div>
 
             {/* Success Modal Overlay */}
-            {step === 3 && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="glass-panel animate-slide-up" style={{ padding: '3rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', maxWidth: '500px', background: 'var(--color-surface)' }}>
-                        <div style={{ width: '80px', height: '80px', background: 'var(--color-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
-                            <CheckCircle size={40} color="#fff" />
+            {
+                step === 3 && (
+                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="glass-panel animate-slide-up" style={{ padding: '3rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', maxWidth: '500px', background: 'var(--color-surface)' }}>
+                            <div style={{ width: '80px', height: '80px', background: 'var(--color-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
+                                <CheckCircle size={40} color="#fff" />
+                            </div>
+                            <h2 className="heading-lg" style={{ marginBottom: '1rem' }}>{t('checkout.success_title')}</h2>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
+                                {t('checkout.success_msg')}
+                            </p>
+                            <button className="btn" onClick={() => navigate('/')}>{t('checkout.back_home')}</button>
                         </div>
-                        <h2 className="heading-lg" style={{ marginBottom: '1rem' }}>{t('checkout.success_title')}</h2>
-                        <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                            {t('checkout.success_msg')}
-                        </p>
-                        <button className="btn" onClick={() => navigate('/')}>{t('checkout.back_home')}</button>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

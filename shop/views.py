@@ -6,7 +6,7 @@ from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
 from .models import Product, Order, Category
-from .serializers import ProductSerializer, ProductCreateSerializer, CategorySerializer
+from .serializers import ProductSerializer, ProductCreateSerializer, CategorySerializer, OrderSerializer
 
 # List all products
 class ProductListView(generics.ListAPIView):
@@ -49,6 +49,11 @@ def increment_product_view(request, id):
         return Response({'status': 'viewed'})
     except Product.DoesNotExist:
         return Response({'error': 'Product not found'}, status=404)
+
+class OrderCreateView(generics.CreateAPIView):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [AllowAny]
 
 class AnalyticsView(views.APIView):
     permission_classes = [IsAdminUser]
