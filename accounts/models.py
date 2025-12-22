@@ -28,6 +28,7 @@ class CustomUser(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=254, unique=True)  # Increased to allow emails
+    credits = models.PositiveIntegerField(default=3, help_text="User credits for purchases")
     
     USERNAME_FIELD = 'phone_number'
     REQUIRED_FIELDS = ['email']

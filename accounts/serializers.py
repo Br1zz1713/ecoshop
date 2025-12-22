@@ -28,6 +28,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['username'] = self.user.username if self.user.username else str(self.user)
         data['email'] = self.user.email
         data['is_staff'] = self.user.is_staff
+        data['credits'] = self.user.credits
         return data
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
@@ -47,4 +48,4 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'phone_number', 'email', 'is_staff')
+        fields = ('id', 'phone_number', 'email', 'is_staff', 'credits')

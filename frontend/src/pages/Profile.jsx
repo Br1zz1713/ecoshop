@@ -117,6 +117,24 @@ export default function Profile() {
 
                         <div style={{ marginBottom: '2rem' }}>
                             <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text)' }}>
+                                <CreditCard size={20} color="var(--color-primary)" /> Credits
+                            </h3>
+                            <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05))', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-primary)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                    <div>
+                                        <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '0.3rem' }}>Available Credits</p>
+                                        <p style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{user.credits || 0}</p>
+                                    </div>
+                                    <CreditCard size={48} color="var(--color-primary)" style={{ opacity: 0.3 }} />
+                                </div>
+                                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginTop: '1rem' }}>
+                                    💡 New users receive 3 credits upon registration
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{ marginBottom: '2rem' }}>
+                            <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text)' }}>
                                 <Clock size={20} color="var(--color-primary)" /> {t('profile.preferences')}
                             </h3>
                             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: 'var(--color-text)' }}>

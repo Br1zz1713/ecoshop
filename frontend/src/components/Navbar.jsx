@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, Sprout, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X } from 'lucide-react';
+import { ShoppingBag, Sprout, LogIn, User, LayoutDashboard, Sun, Moon, Globe, Menu, X, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -147,6 +147,23 @@ export default function Navbar() {
                     <div className="desktop-only">
                         {user ? (
                             <div className="flex items-center gap-sm">
+                                {user.credits !== undefined && (
+                                    <div style={{
+                                        padding: '0.3rem 0.7rem',
+                                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05))',
+                                        borderRadius: '99px',
+                                        border: '1px solid var(--color-primary)',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 'bold',
+                                        color: 'var(--color-primary)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem'
+                                    }}>
+                                        <CreditCard size={14} />
+                                        {user.credits}
+                                    </div>
+                                )}
                                 {user.is_staff && (
                                     <Link to="/admin" className="icon-btn text-primary">
                                         <LayoutDashboard size={20} />
