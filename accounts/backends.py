@@ -6,7 +6,7 @@ User = get_user_model()
 
 class EmailOrPhoneBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
-        # Django admin может передавать phone_number вместо username
+        # Django admin can pass phone_number instead of username
         if username is None:
             username = kwargs.get('phone_number') or kwargs.get(User.USERNAME_FIELD)
         

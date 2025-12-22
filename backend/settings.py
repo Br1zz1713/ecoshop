@@ -52,11 +52,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',         # Для связи с React
-    'rest_framework',      # Для создания API
+    'corsheaders',         # For React integration
+    'rest_framework',      # For creating REST API
     'rest_framework_simplejwt',
     'csp',                 # Content Security Policy
-    'shop.apps.ShopConfig', # Наше приложение
+    'shop.apps.ShopConfig', # Our shop application
     'accounts.apps.AccountsConfig',
     'blog.apps.BlogConfig',
 ]
@@ -88,7 +88,7 @@ REST_FRAMEWORK = {
     )
 }
 
-# Разрешаем запросы с фронтенд-порта (3000)
+# Allow requests from frontend port (3000)
 # CORS Settings
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
