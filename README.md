@@ -26,9 +26,9 @@
 ### 🔐 **User Authentication & Authorization**
 - **JWT-based authentication** with secure token management (access/refresh tokens)
 - **Custom user model** supporting phone number and email-based login
-- **User credit system**: Automated allocation of 3 credits per new registration
 - **Role-based access control** with admin/staff permissions
 - **Secure password handling** with Django's built-in encryption
+- **Session management** with automatic token refresh
 
 ### 🛍️ **Dynamic Product Catalog**
 - **Advanced filtering system** by category, skin type, and ingredients
@@ -176,16 +176,18 @@ Developer Push → GitHub Repository → Automated Build → Environment Config 
 
 **Backend (Railway)**:
 ```bash
-SECRET_KEY=<django-secret-key>
-DATABASE_URL=<postgresql-connection-string>
-ALLOWED_HOSTS=<comma-separated-domains>
+SECRET_KEY=your-django-secret-key-here
+DATABASE_URL=postgresql://user:password@host:port/database
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
 DEBUG=False
 ```
 
 **Frontend (Vercel)**:
 ```bash
-VITE_API_URL=<backend-api-url>
+VITE_API_URL=https://your-backend-api.railway.app
 ```
+
+> **Security Note**: Never commit `.env` files to version control. All sensitive keys should be configured in your deployment platform's dashboard.
 
 #### CI/CD Features
 
@@ -305,8 +307,9 @@ The frontend follows **modern React best practices** and component-based archite
 
 ## 📊 Project Statistics
 
+- **6,574 Lines of Code** - Substantial, production-ready codebase
 - **50+ Git Commits** - Professional version control history
-- **8 Django Apps** - Modular, maintainable codebase
+- **8 Django Apps** - Modular, maintainable backend architecture
 - **20+ React Components** - Reusable UI building blocks
 - **15+ API Endpoints** - Comprehensive backend coverage
 - **3 Language Support** - English, Ukrainian, Russian
