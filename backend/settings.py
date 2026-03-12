@@ -34,7 +34,7 @@ RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL', '')
 if RAILWAY_STATIC_URL:
     ALLOWED_HOSTS.append(RAILWAY_STATIC_URL)
 
-# Allow all Railway.app and Render.com subdomains in production
+# Allow all Railway.app, Render.com, and Vercel domains in production
 if not DEBUG:
     ALLOWED_HOSTS.extend([
         '.railway.app',
@@ -44,6 +44,9 @@ if not DEBUG:
         'ecoshop-alpha.store',
         'www.ecoshop-alpha.store',
     ])
+else:
+    # Local dev
+    ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -195,7 +198,7 @@ STATICFILES_DIRS = [
 ] if os.path.exists(os.path.join(BASE_DIR, 'frontend', 'dist')) else []
 
 # Whitenoise for serving static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStorage'  # More resilient for serverless than manifest binary
 
 # ---------------------------------------------------------------------------
 # Media / File Storage – Supabase Storage (S3-compatible)

@@ -1,43 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "vercel_app.py",
-      "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.12" }
-    },
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "source": "/api/(.*)",
-      "dest": "vercel_app.py"
-    },
-    {
-      "source": "/admin/(.*)",
-      "dest": "vercel_app.py"
-    },
-    {
-      "source": "/static/admin/(.*)",
-      "dest": "vercel_app.py"
-    },
-    {
-      "source": "/(.*)",
-      "dest": "/frontend/$1",
-      "continue": true
-    },
-    {
-      "handle": "filesystem"
-    },
-    {
-      "source": "/(.*)",
-      "dest": "/frontend/index.html"
-    }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/admin/(.*)", "destination": "/api/index.py" },
+    { "source": "/static/admin/(.*)", "destination": "/api/index.py" },
+    { "source": "/(.*)", "destination": "/frontend/$1", "continue": true },
+    { "handle": "filesystem" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
