@@ -40,6 +40,9 @@ if not DEBUG:
         '.railway.app',
         '.up.railway.app',
         '.onrender.com',
+        '.vercel.app',  # Add Vercel subdomains
+        'ecoshop-alpha.store',
+        'www.ecoshop-alpha.store',
     ])
 
 
@@ -260,7 +263,7 @@ CSP = {
     'style-src': ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com"),
     'font-src': ("'self'", "https://fonts.gstatic.com"),
     'img-src': ("'self'", "data:", "https:"),
-    'connect-src': ("'self'", "https://*.onrender.com", "https://*.railway.app", "https://*.supabase.co"),
+    'connect-src': ("'self'", "https://*.onrender.com", "https://*.railway.app", "https://*.supabase.co", "https://*.vercel.app"),
 }
 
 # Default primary key field type
