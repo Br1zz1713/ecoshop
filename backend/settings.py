@@ -190,7 +190,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Allow override via env var (used by api/index.py to point to /tmp in Vercel serverless)
+STATIC_ROOT = os.environ.get(
+    'DJANGO_STATIC_ROOT',
+    os.path.join(BASE_DIR, 'staticfiles')
+)
 
 # Additional locations for static files
 STATICFILES_DIRS = [
@@ -199,6 +203,7 @@ STATICFILES_DIRS = [
 
 # Whitenoise for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStorage'  # More resilient for serverless than manifest binary
+
 
 # ---------------------------------------------------------------------------
 # Media / File Storage – Supabase Storage (S3-compatible)
