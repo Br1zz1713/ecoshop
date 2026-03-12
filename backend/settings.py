@@ -101,7 +101,19 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',
     'https://*.vercel.app',
     'https://ecoshop-alpha.vercel.app',
+    'https://www.ecoshop-alpha.store',
+    'https://ecoshop-alpha.store',
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    'https://ecoshop-alpha.vercel.app',
+    'https://www.ecoshop-alpha.store',
+    'https://ecoshop-alpha.store',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+CORS_ALLOW_ALL_ORIGINS = DEBUG  # Only allow all in debug mode
 
 
 ROOT_URLCONF = 'backend.urls'
@@ -126,34 +138,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+import dj_database_url
 
-# Parse DATABASE_URL manually (Railway provides this)
-import os
-from urllib.parse import urlparse
-
-DATABASE_URL = os.environ.get('DATABASE_URL', '')
-
-if DATABASE_URL:
-    # Parse PostgreSQL URL from Railway
-    url = urlparse(DATABASE_URL)
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': url.path[1:],
-            'USER': url.username,
-            'PASSWORD': url.password,
-            'HOST': url.hostname,
-            'PORT': url.port or 5432,
-        }
-    }
-else:
-    # Fallback to SQLite for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
+DATABASES = {
+    'default': dj_database_url.config(
+        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+        conn_max_age=600,
+        ssl_require=not DEBUG,
+    )
+}
 
 
 # Password validation
@@ -198,12 +191,45 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'frontend', 'dist'),
 ] if os.path.exists(os.path.join(BASE_DIR, 'frontend', 'dist')) else []
 
-# Media files
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 # Whitenoise for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# ---------------------------------------------------------------------------
+# Media / File Storage – Supabase Storage (S3-compatible)
+# ---------------------------------------------------------------------------
+# Set SUPABASE_URL, SUPABASE_S3_ENDPOINT, SUPABASE_STORAGE_KEY, and
+# SUPABASE_STORAGE_BUCKET as environment variables.
+# When those vars are absent (local dev without Supabase), fall back to
+# the local filesystem so the dev server still works.
+# ---------------------------------------------------------------------------
+_SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+_SUPABASE_S3_ENDPOINT = os.environ.get(
+    'SUPABASE_S3_ENDPOINT',
+    f"{_SUPABASE_URL}/storage/v1/s3" if _SUPABASE_URL else ''
+)
+_SUPABASE_STORAGE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '')
+_SUPABASE_STORAGE_BUCKET = os.environ.get('SUPABASE_STORAGE_BUCKET', 'products')
+
+if _SUPABASE_URL and _SUPABASE_STORAGE_KEY:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    AWS_ACCESS_KEY_ID = _SUPABASE_STORAGE_KEY
+    AWS_SECRET_ACCESS_KEY = _SUPABASE_STORAGE_KEY
+    AWS_STORAGE_BUCKET_NAME = _SUPABASE_STORAGE_BUCKET
+    AWS_S3_ENDPOINT_URL = _SUPABASE_S3_ENDPOINT
+    AWS_S3_REGION_NAME = 'auto'
+    AWS_DEFAULT_ACL = 'public-read'
+    AWS_S3_FILE_OVERWRITE = False
+    AWS_QUERYSTRING_AUTH = False
+    AWS_S3_SIGNATURE_VERSION = 's3v4'
+
+    # Public CDN URL for images served from Supabase Storage
+    MEDIA_URL = f"{_SUPABASE_URL}/storage/v1/object/public/{_SUPABASE_STORAGE_BUCKET}/"
+    MEDIA_ROOT = ''
+else:
+    # Local fallback
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Security Settings for Production
 if not DEBUG:
@@ -227,13 +253,15 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     X_FRAME_OPTIONS = 'DENY'
 
-# Content Security Policy
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
-CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com")
-CSP_FONT_SRC = ("'self'", "https://fonts.gstatic.com")
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_CONNECT_SRC = ("'self'", "https://*.onrender.com", "https://*.railway.app")
+# Content Security Policy (django-csp 4.0+)
+CSP = {
+    'default-src': ("'self'",),
+    'script-src': ("'self'", "'unsafe-inline'", "'unsafe-eval'"),
+    'style-src': ("'self'", "'unsafe-inline'", "https://fonts.googleapis.com"),
+    'font-src': ("'self'", "https://fonts.gstatic.com"),
+    'img-src': ("'self'", "data:", "https:"),
+    'connect-src': ("'self'", "https://*.onrender.com", "https://*.railway.app", "https://*.supabase.co"),
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
