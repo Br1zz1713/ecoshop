@@ -22,5 +22,15 @@ except Exception as e:
 
 from backend.wsgi import application  # noqa: E402
 
+import traceback
+
+def handler(environ, start_response):
+    try:
+        return application(environ, start_response)
+    except Exception:
+        print("[vercel] CRITICAL ERROR IN WSGI:")
+        traceback.print_exc()
+        raise
+
 # Vercel Python serverless looks for 'app'
-app = application
+app = handler
