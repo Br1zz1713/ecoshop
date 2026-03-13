@@ -166,16 +166,21 @@ export default function Admin() {
             resetForm();
             fetchData();
         } catch (err) {
-            console.error(err);
+            console.error('Full Update/Create Error:', err);
             // Extract error message from backend response
             let msg = 'Operation failed';
             if (err.response && err.response.data) {
-                // Use the first error key/message found
-                const keys = Object.keys(err.response.data);
-                if (keys.length > 0) {
-                    const firstError = err.response.data[keys[0]];
-                    msg = `${keys[0]}: ${Array.isArray(firstError) ? firstError[0] : firstError}`;
+                if (typeof err.response.data === 'string') {
+                    msg = err.response.data.substring(0, 100);
+                } else {
+                    const keys = Object.keys(err.response.data);
+                    if (keys.length > 0) {
+                        const firstError = err.response.data[keys[0]];
+                        msg = `${keys[0]}: ${Array.isArray(firstError) ? firstError[0] : JSON.stringify(firstError)}`;
+                    }
                 }
+            } else if (err.message) {
+                msg = err.message;
             }
             toast.addToast(msg, 'error');
         }

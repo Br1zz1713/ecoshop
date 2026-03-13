@@ -56,12 +56,10 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         gallery_images = validated_data.pop('gallery', [])
         
-        # Update standard fields
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+        # Use DRF default update for standard fields (including category)
+        instance = super().update(instance, validated_data)
         
-        # Append new images to gallery
+        # Append new images to gallery if provided
         for image in gallery_images:
             ProductImage.objects.create(product=instance, image=image)
             

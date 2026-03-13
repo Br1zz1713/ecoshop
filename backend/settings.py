@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -229,7 +232,7 @@ if _SUPABASE_URL and _SUPABASE_STORAGE_KEY:
     AWS_STORAGE_BUCKET_NAME = _SUPABASE_STORAGE_BUCKET
     AWS_S3_ENDPOINT_URL = _SUPABASE_S3_ENDPOINT
     AWS_S3_REGION_NAME = 'auto'
-    AWS_DEFAULT_ACL = 'public-read'
+    AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_SIGNATURE_VERSION = 's3v4'
