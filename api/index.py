@@ -25,8 +25,13 @@ from backend.wsgi import application  # noqa: E402
 import traceback
 
 def handler(environ, start_response):
+    def custom_start_response(status, headers, exc_info=None):
+        from django.conf import settings
+        db_engine = settings.DATABASES['default']['ENGINE']
+        headers.append(('X-DB-Engine', db_engine))
+        return start_response(status, headers, exc_info)
     try:
-        return application(environ, start_response)
+        return application(environ, custom_start_response)
     except Exception:
         print("[vercel] CRITICAL ERROR IN WSGI:")
         traceback.print_exc()
