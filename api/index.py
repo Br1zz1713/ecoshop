@@ -1,3 +1,8 @@
+import os
+
+# Set up Django settings before importing application
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
 from backend.wsgi import application
 import traceback
 import sys
