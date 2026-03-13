@@ -28,8 +28,9 @@ export default function Admin() {
     const [mainImageIndex, setMainImageIndex] = useState(0);
     const [categoryFormData, setCategoryFormData] = useState({ name: '', slug: '' });
     const [editId, setEditId] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null); // Keep for backward compat or single view, but mostly rely on galleryPreviews
-    const [galleryPreviews, setGalleryPreviews] = useState([]);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [galleryPreviews, setGalleryPreviews] = useState([]); // Array of { id, url, isNew }
+    const [deletedImageIds, setDeletedImageIds] = useState([]);
 
     useEffect(() => {
         if (!authLoading && !user) {
@@ -104,13 +105,18 @@ export default function Admin() {
 
         // Load existing gallery images
         if (product.images && product.images.length > 0) {
-            const existingPreviews = product.images.map(img => img.image);
+            const existingPreviews = product.images.map(img => ({
+                id: img.id,
+                url: img.image,
+                isNew: false
+            }));
             setGalleryPreviews(existingPreviews);
-            setGalleryFiles([]); // Clear file objects (we only have URLs)
+            setGalleryFiles([]); 
         } else {
             setGalleryPreviews([]);
             setGalleryFiles([]);
         }
+        setDeletedImageIds([]);
 
         setEditId(product.id);
         setIsEditing(true);
@@ -121,38 +127,43 @@ export default function Admin() {
         e.preventDefault();
         const data = new FormData();
         Object.keys(formData).forEach(key => {
-            if (key === 'image') return; // Handle manually
-            data.append(key, formData[key]);
+            if (key === 'image') return;
+            let value = formData[key];
+            // Sanitize price (replace comma with dot)
+            if (key === 'price' && typeof value === 'string') {
+                value = value.replace(',', '.');
+            }
+            data.append(key, value);
         });
 
-        // Calculate offset of existing images vs new images in the preview list
-        const existingImagesCount = galleryPreviews.length - galleryFiles.length;
+        // Add IDs for deletion
+        deletedImageIds.forEach(id => data.append('delete_images', id));
 
         // Handle Main Image Logic
-        if (galleryFiles.length > 0) {
-            // New files are present
-
-            // Check if the selected main image is one of the NEW files
-            if (mainImageIndex >= existingImagesCount) {
-                // The user selected a NEW file as the main cover
-                const newFileIndex = mainImageIndex - existingImagesCount;
-                if (newFileIndex >= 0 && newFileIndex < galleryFiles.length) {
-                    data.append('image', galleryFiles[newFileIndex]);
+        // Find if the mainImageIndex points to an existing image or a new file
+        const selectedPreview = galleryPreviews[mainImageIndex];
+        
+        if (selectedPreview) {
+            if (selectedPreview.isNew) {
+                // It's a newly uploaded file
+                const fileIndex = galleryPreviews
+                    .slice(0, mainImageIndex + 1)
+                    .filter(p => p.isNew).length - 1;
+                if (fileIndex >= 0 && fileIndex < galleryFiles.length) {
+                    data.append('image', galleryFiles[fileIndex]);
                 }
             } else {
-                // The user selected an OLD file as main (or didn't change selection)
-                // In this case, we do NOT send a new 'image' file, so the backend keeps the old one.
-                // However, if the logic dictates we need to *support* re-setting an old image as new cover,
-                // we'd need backend logic for that. For now, assuming "update" keeps old cover if no new 'image' sent.
+                 // It's an existing image. Backend needs to know it's now the main cover.
+                 // The Product model has a single 'image' field. 
+                 // If we want to move a gallery item to the main cover, we'd ideally pass the URL or ID.
+                 // For now, if no 'image' is sent, Django keeps the current one.
             }
-
-            // Append Gallery (All NEW images)
-            galleryFiles.forEach(file => {
-                data.append('gallery', file);
-            });
-        } else if (formData.image instanceof File) {
-            data.append('image', formData.image);
         }
+
+        // Append all NEW files to gallery
+        galleryFiles.forEach(file => {
+            data.append('gallery', file);
+        });
 
         try {
             if (isEditing) {
@@ -231,6 +242,7 @@ export default function Admin() {
         setImagePreview(null);
         setGalleryFiles([]);
         setGalleryPreviews([]);
+        setDeletedImageIds([]);
         setMainImageIndex(0);
         setFormData({
             name: '', slug: '', price: '', description: '', category: '1', available: true, image: null,
@@ -485,7 +497,7 @@ export default function Admin() {
                             </div>
                             <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                                 <input className="input-field" placeholder="Product Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
-                                <input className="input-field" placeholder="Price" type="number" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                                <input className="input-field" placeholder="Price" type="text" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} required />
                                 <textarea className="input-field" placeholder="Description" rows={3} value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
 
                                 {/* Category Select */}
@@ -515,7 +527,7 @@ export default function Admin() {
 
                                     {/* Unified Gallery Grid */}
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                        {/* Existing Images */}
+                                        {/* Existing and New Images Previews */}
                                         {galleryPreviews.map((src, index) => (
                                             <div
                                                 key={`preview-${index}`}
@@ -529,7 +541,7 @@ export default function Admin() {
                                                 }}
                                             >
                                                 <img
-                                                    src={src}
+                                                    src={src.url}
                                                     alt={`Preview ${index}`}
                                                     style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'pointer' }}
                                                     onClick={() => setMainImageIndex(index)}
@@ -541,26 +553,25 @@ export default function Admin() {
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        // Remove from previews
-                                                        const newPreviews = [...galleryPreviews];
-                                                        newPreviews.splice(index, 1);
-                                                        setGalleryPreviews(newPreviews);
-
-                                                        // Remove from files if it's a new file
-                                                        // Note: We need to map previews to files correctly or handle separately.
-                                                        // For simplicity in this patch: we reconstruct the file list.
-                                                        // BUT: existing images don't have files.
-                                                        // Correct logic:
-                                                        if (index < (galleryPreviews.length - galleryFiles.length)) {
-                                                            // It's an existing backend image. We might need to track deletion ID.
-                                                            // For now, UI removal. API update needed for partial delete.
+                                                        const target = galleryPreviews[index];
+                                                        
+                                                        if (!target.isNew) {
+                                                            setDeletedImageIds(prev => [...prev, target.id]);
                                                         } else {
-                                                            // It's a newly added file
-                                                            const fileIndex = index - (galleryPreviews.length - galleryFiles.length);
+                                                            const fileIndex = galleryPreviews
+                                                                .slice(0, index + 1)
+                                                                .filter(p => p.isNew).length - 1;
                                                             const newFiles = [...galleryFiles];
                                                             newFiles.splice(fileIndex, 1);
                                                             setGalleryFiles(newFiles);
                                                         }
+
+                                                        const newPreviews = [...galleryPreviews];
+                                                        newPreviews.splice(index, 1);
+                                                        setGalleryPreviews(newPreviews);
+                                                        
+                                                        if (mainImageIndex === index) setMainImageIndex(0);
+                                                        else if (mainImageIndex > index) setMainImageIndex(mainImageIndex - 1);
                                                     }}
                                                     style={{
                                                         position: 'absolute',
@@ -610,11 +621,13 @@ export default function Admin() {
                                                         return;
                                                     }
 
-                                                    // Append new files
                                                     setGalleryFiles([...galleryFiles, ...newFiles]);
 
-                                                    // Append new previews
-                                                    const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+                                                    const newPreviews = newFiles.map(file => ({
+                                                        id: null,
+                                                        url: URL.createObjectURL(file),
+                                                        isNew: true
+                                                    }));
                                                     setGalleryPreviews([...galleryPreviews, ...newPreviews]);
                                                 }}
                                                 style={{ display: 'none' }}

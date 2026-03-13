@@ -32,10 +32,15 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False
     )
+    delete_images = serializers.ListField(
+        child=serializers.IntegerField(),
+        write_only=True,
+        required=False
+    )
 
     class Meta:
         model = Product
-        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'gallery', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
+        fields = ['id', 'category', 'name', 'slug', 'description', 'image', 'gallery', 'delete_images', 'price', 'available', 'ingredients', 'volume', 'skin_type', 'country']
 
     def validate(self, attrs):
         gallery = attrs.get('gallery', [])
@@ -45,6 +50,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         gallery_images = validated_data.pop('gallery', [])
+        validated_data.pop('delete_images', None) # Not used in create
         product = Product.objects.create(**validated_data)
         
         # Create ProductImage instances
@@ -55,10 +61,15 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         gallery_images = validated_data.pop('gallery', [])
+        delete_image_ids = validated_data.pop('delete_images', [])
         
-        # Use DRF default update for standard fields (including category)
+        # Use DRF default update for standard fields
         instance = super().update(instance, validated_data)
         
+        # Handle deletions
+        if delete_image_ids:
+            ProductImage.objects.filter(id__in=delete_image_ids, product=instance).delete()
+
         # Append new images to gallery if provided
         for image in gallery_images:
             ProductImage.objects.create(product=instance, image=image)
