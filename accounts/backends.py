@@ -15,8 +15,22 @@ class EmailOrPhoneBackend(ModelBackend):
         
         try:
             # Check against email OR phone_number
-            user = User.objects.get(Q(email=username) | Q(phone_number=username))
-        except User.DoesNotExist:
+            # Strip non-digits for phone search if it looks like one
+            clean_username = username
+            if any(char.isdigit() for char in username) and '@' not in username:
+                # Keep + if present at start, but strip other non-digits
+                prefix = '+' if username.startswith('+') else ''
+                digits = ''.join(filter(str.isdigit, username))
+                clean_username = prefix + digits
+
+            user = User.objects.filter(
+                Q(email=username) | 
+                Q(phone_number=username) | 
+                Q(phone_number=clean_username)
+            ).first()
+            if not user:
+                return None
+        except Exception:
             return None
         
         if user.check_password(password) and self.user_can_authenticate(user):
