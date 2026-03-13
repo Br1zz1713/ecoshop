@@ -205,9 +205,7 @@ STATIC_ROOT = os.environ.get(
 )
 
 # Additional locations for static files
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend', 'dist'),
-] if os.path.exists(os.path.join(BASE_DIR, 'frontend', 'dist')) else []
+STATICFILES_DIRS = []
 
 # Whitenoise for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.WhiteNoiseStorage'  # More resilient for serverless than manifest binary
