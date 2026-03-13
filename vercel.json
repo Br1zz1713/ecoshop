@@ -20,9 +20,9 @@
     { "source": "/api/(.*)", "destination": "/api/index.py" },
     { "source": "/admin/(.*)", "destination": "/api/index.py" },
     { "source": "/static/admin/(.*)", "destination": "/api/index.py" },
-    {
-      "source": "/((?!assets/|favicon\\.svg|vite\\.svg).*)$",
-      "destination": "/frontend/index.html"
-    }
+    { "source": "/assets/(.*)", "destination": "/frontend/assets/$1" },
+    { "source": "/favicon.svg", "destination": "/frontend/favicon.svg" },
+    { "source": "/vite.svg", "destination": "/frontend/vite.svg" },
+    { "source": "/(.*)", "destination": "/frontend/index.html" }
   ]
 }
