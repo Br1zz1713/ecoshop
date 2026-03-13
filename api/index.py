@@ -12,7 +12,7 @@ try:
     import django
     django.setup()
     from backend.wsgi import application as _application
-except Exception as _e:
+except BaseException as _e:
     _startup_error = traceback.format_exc()
     print(f"[vercel] STARTUP CRASH:\n{_startup_error}", file=sys.stderr)
 
