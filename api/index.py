@@ -1,24 +1,24 @@
 import os
-
-# Set up Django settings before importing application
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
-
-from backend.wsgi import application
-import traceback
 import sys
 
-def handler(environ, start_response):
-    try:
-        return application(environ, start_response)
-    except Exception as e:
-        print(f"[vercel] WSGI CRASH: {e}", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
-        # Return a simple JSON error instead of crashing the proxy
-        status = '500 Internal Server Error'
-        output = b'{"error": "WSGI Server Error", "detail": "Check logs"}'
-        response_headers = [('Content-type', 'application/json'), ('Content-Length', str(len(output)))]
-        start_response(status, response_headers)
-        return [output]
+import django
+from django.core.management import call_command
+
+# Set up Django settings
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
+
+# In Vercel serverless, /tmp is writable.
+os.environ.setdefault('DJANGO_STATIC_ROOT', '/tmp/staticfiles')
+
+django.setup()
+
+# Run collectstatic so WhiteNoise has something to serve
+try:
+    call_command('collectstatic', '--noinput', '--clear', verbosity=0)
+except Exception as e:
+    print(f"[vercel] collectstatic skipped: {e}", file=sys.stderr)
+
+from backend.wsgi import application
 
 # Vercel looks for 'app'
-app = handler
+app = application
