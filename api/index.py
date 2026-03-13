@@ -24,8 +24,11 @@ import sys
 
 def handler(environ, start_response):
     try:
-        return application(environ, start_response)
+        response = application(environ, start_response)
+        # Convert to list to catch lazy iteration errors
+        return list(response)
     except Exception as e:
+        import sys, traceback
         print(f"[vercel] WSGI CRASH: {e}", file=sys.stderr)
         traceback.print_exc(file=sys.stderr)
         # Return a simple JSON error instead of crashing the proxy

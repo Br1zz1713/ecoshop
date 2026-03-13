@@ -60,7 +60,8 @@ def ping(request):
         }, status=500)
 
 urlpatterns = [
-    path('ping/', ping, name='ping'),  # Debug endpoint
+    path('ping/', ping, name='ping'),  # Root ping
+    path('api/ping/', ping),           # API ping
     path('api-root/', api_root, name='api-root'),
     path('admin/', admin.site.urls),
     path('api/', include('shop.urls', namespace='shop')),
