@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from urllib.parse import urlparse
 
 load_dotenv()
 
@@ -227,11 +228,12 @@ _SUPABASE_STORAGE_BUCKET = os.environ.get('SUPABASE_STORAGE_BUCKET', 'products')
 if _SUPABASE_URL and _SUPABASE_STORAGE_KEY:
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-    AWS_ACCESS_KEY_ID = _SUPABASE_STORAGE_KEY
+    # Supabase S3 uses Project Ref as Access Key and Service Role Key as Secret Key
+    AWS_ACCESS_KEY_ID = urlparse(_SUPABASE_URL).netloc.split('.')[0] if _SUPABASE_URL else ''
     AWS_SECRET_ACCESS_KEY = _SUPABASE_STORAGE_KEY
     AWS_STORAGE_BUCKET_NAME = _SUPABASE_STORAGE_BUCKET
     AWS_S3_ENDPOINT_URL = _SUPABASE_S3_ENDPOINT
-    AWS_S3_REGION_NAME = 'auto'
+    AWS_S3_REGION_NAME = 'us-east-1'
     AWS_DEFAULT_ACL = None
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = False
