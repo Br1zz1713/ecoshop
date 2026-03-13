@@ -101,22 +101,34 @@ export default function Admin() {
             country: product.country || 'Ukraine',
             image: null // We don't prepopulate file input
         });
-        setImagePreview(product.image);
-
-        // Load existing gallery images
-        if (product.images && product.images.length > 0) {
-            const existingPreviews = product.images.map(img => ({
-                id: img.id,
-                url: img.image,
-                isNew: false
-            }));
-            setGalleryPreviews(existingPreviews);
-            setGalleryFiles([]); 
-        } else {
-            setGalleryPreviews([]);
-            setGalleryFiles([]);
+        const initialPreviews = [];
+        
+        // 1. Add cover image first
+        if (product.image) {
+            initialPreviews.push({
+                id: 'main', // Special ID for cover
+                url: product.image,
+                isNew: false,
+                isMain: true
+            });
         }
+
+        // 2. Add existing gallery images
+        if (product.images && product.images.length > 0) {
+            product.images.forEach(img => {
+                initialPreviews.push({
+                    id: img.id,
+                    url: img.image,
+                    isNew: false,
+                    isMain: false
+                });
+            });
+        }
+
+        setGalleryPreviews(initialPreviews);
+        setGalleryFiles([]); 
         setDeletedImageIds([]);
+        setMainImageIndex(0); // The first one is main by default
 
         setEditId(product.id);
         setIsEditing(true);
@@ -136,31 +148,33 @@ export default function Admin() {
             data.append(key, value);
         });
 
-        // Add IDs for deletion
-        deletedImageIds.forEach(id => data.append('delete_images', id));
+        // IDs for deletion (gallery images only)
+        deletedImageIds.forEach(id => {
+            if (id !== 'main') data.append('delete_images', id);
+        });
 
-        // Handle Main Image Logic
-        // Find if the mainImageIndex points to an existing image or a new file
+        // Handle Main Image field logic
         const selectedPreview = galleryPreviews[mainImageIndex];
         
         if (selectedPreview) {
             if (selectedPreview.isNew) {
-                // It's a newly uploaded file
+                // New file selected as main
                 const fileIndex = galleryPreviews
                     .slice(0, mainImageIndex + 1)
                     .filter(p => p.isNew).length - 1;
                 if (fileIndex >= 0 && fileIndex < galleryFiles.length) {
                     data.append('image', galleryFiles[fileIndex]);
                 }
+            } else if (selectedPreview.id === 'main') {
+                // Keep existing main image - no need to send anything for PATCH
             } else {
-                 // It's an existing image. Backend needs to know it's now the main cover.
-                 // The Product model has a single 'image' field. 
-                 // If we want to move a gallery item to the main cover, we'd ideally pass the URL or ID.
-                 // For now, if no 'image' is sent, Django keeps the current one.
+                // An existing GALLERY image selected as main? 
+                // For now, if it's an existing gallery item, we keep it as is.
+                // Simplified: existing gallery image as main would need backend logic to promote it.
             }
         }
 
-        // Append all NEW files to gallery
+        // Append NEW files to gallery
         galleryFiles.forEach(file => {
             data.append('gallery', file);
         });
@@ -514,16 +528,8 @@ export default function Admin() {
                                 </select>
 
                                 {/* Image Upload & Preview */}
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                                    <label style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Product Images (Select Multiple)</label>
-
-                                    {/* Existing Main Image (for edit) */}
-                                    {isEditing && imagePreview && galleryPreviews.length === 0 && (
-                                        <div style={{ marginBottom: '0.5rem', position: 'relative', display: 'inline-block' }}>
-                                            <p style={{ fontSize: '0.8rem', color: '#888' }}>Current Main Image:</p>
-                                            <img src={imagePreview} alt="Current" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '4px' }} />
-                                        </div>
-                                    )}
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                        <label style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Product Images (Select Multiple)</label>
 
                                     {/* Unified Gallery Grid */}
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
@@ -547,7 +553,7 @@ export default function Admin() {
                                                     onClick={() => setMainImageIndex(index)}
                                                 />
                                                 {mainImageIndex === index && (
-                                                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(85, 107, 47, 0.8)', color: 'white', padding: '2px', fontSize: '0.6rem', textAlign: 'center' }}>Main</div>
+                                                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: 'rgba(85, 107, 47, 0.8)', color: 'white', padding: '2px', fontSize: '0.6rem', textAlign: 'center' }}>{src.id === 'main' ? 'Cover' : 'Main'}</div>
                                                 )}
                                                 <button
                                                     type="button"
