@@ -165,7 +165,7 @@ export default function Navbar() {
                                     </div>
                                 )}
                                 {user.is_staff && (
-                                    <Link to="/admin" className="icon-btn text-primary">
+                                    <Link to="/dashboard" className="icon-btn text-primary">
                                         <LayoutDashboard size={20} />
                                     </Link>
                                 )}
@@ -200,7 +200,7 @@ export default function Navbar() {
                                 <User size={18} /> {t('nav.profile')}
                             </Link>
                             {user.is_staff && (
-                                <Link to="/admin" className="mobile-link flex items-center gap-sm">
+                                <Link to="/dashboard" className="mobile-link flex items-center gap-sm">
                                     <LayoutDashboard size={18} /> {t('nav.dashboard')}
                                 </Link>
                             )}
