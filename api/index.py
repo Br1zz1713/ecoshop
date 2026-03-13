@@ -1,33 +1,49 @@
 import os
 import sys
+import traceback
 
-import django
-from django.core.management import call_command
-
-# Set up Django settings
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
-django.setup()
+# Wrap entire startup in try/except to catch any crash at module-load time
+_startup_error = None
+_application = None
 
-from backend.wsgi import application
-import traceback
-import sys
+try:
+    import django
+    django.setup()
+    from backend.wsgi import application as _application
+except Exception as _e:
+    _startup_error = traceback.format_exc()
+    print(f"[vercel] STARTUP CRASH:\n{_startup_error}", file=sys.stderr)
+
 
 def handler(environ, start_response):
+    if _startup_error:
+        # Return the startup error as a readable JSON response
+        output = (
+            '{"error": "Django startup failed", "detail": '
+            + repr(_startup_error)
+            + '}'
+        ).encode()
+        start_response('500 Internal Server Error', [
+            ('Content-Type', 'application/json'),
+            ('Content-Length', str(len(output))),
+        ])
+        return [output]
+
     try:
-        response = application(environ, start_response)
-        # Convert to list to catch lazy iteration errors
+        response = _application(environ, start_response)
         return list(response)
     except Exception as e:
-        import sys, traceback
-        print(f"[vercel] WSGI CRASH: {e}", file=sys.stderr)
-        traceback.print_exc(file=sys.stderr)
-        # Return a simple JSON error instead of crashing the proxy
-        status = '500 Internal Server Error'
-        output = b'{"error": "WSGI Server Error", "detail": "Check Vercel logs"}'
-        response_headers = [('Content-type', 'application/json'), ('Content-Length', str(len(output)))]
-        start_response(status, response_headers)
+        tb = traceback.format_exc()
+        print(f"[vercel] WSGI CRASH: {e}\n{tb}", file=sys.stderr)
+        output = ('{"error": "WSGI Server Error", "detail": ' + repr(str(e)) + '}').encode()
+        start_response('500 Internal Server Error', [
+            ('Content-Type', 'application/json'),
+            ('Content-Length', str(len(output))),
+        ])
         return [output]
+
 
 # Vercel looks for 'app'
 app = handler
