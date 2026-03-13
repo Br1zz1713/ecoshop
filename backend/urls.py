@@ -47,7 +47,17 @@ def serve_react(request, path=''):
     return api_root(request)
 
 def ping(request):
-    return JsonResponse({'status': 'pong', 'message': 'Backend is reachable!'})
+    from django.db import connection
+    try:
+        connection.ensure_connection()
+        return JsonResponse({'status': 'pong', 'message': 'Backend & DB are reachable!'})
+    except Exception as e:
+        import traceback
+        return JsonResponse({
+            'status': 'error', 
+            'message': f'DB Connection Error: {str(e)}',
+            'traceback': traceback.format_exc() if settings.DEBUG else 'Check logs'
+        }, status=500)
 
 urlpatterns = [
     path('ping/', ping, name='ping'),  # Debug endpoint
