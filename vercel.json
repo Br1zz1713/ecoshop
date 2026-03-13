@@ -16,11 +16,13 @@
       }
     }
   ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/index.py" },
-    { "src": "/admin/(.*)", "dest": "/api/index.py" },
-    { "src": "/static/admin/(.*)", "dest": "/api/index.py" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index.py" },
+    { "source": "/admin/(.*)", "destination": "/api/index.py" },
+    { "source": "/static/admin/(.*)", "destination": "/api/index.py" },
+    {
+      "source": "/((?!assets/|favicon\\.svg|vite\\.svg).*)$",
+      "destination": "/frontend/index.html"
+    }
   ]
 }
