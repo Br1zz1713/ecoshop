@@ -75,6 +75,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'backend.debug_middleware.ExceptionLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add Whitenoise here
     # 'backend.security_middleware.SecurityHeadersMiddleware',  # Custom security headers (DISABLED FOR DEBUG)

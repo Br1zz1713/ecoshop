@@ -22,7 +22,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if User.USERNAME_FIELD and User.USERNAME_FIELD != 'username':
             attrs[User.USERNAME_FIELD] = username_value
             
+        import sys
         data = super().validate(attrs)
+        
+        print(f"[debug] Token validate success for user: {self.user}", file=sys.stderr)
         
         # Add extra user data to the response SAFELY
         try:
