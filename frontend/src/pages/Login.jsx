@@ -36,7 +36,23 @@ export default function Login() {
             // But basic navigation works
             navigate('/');
         } catch (err) {
-            setError('Invalid credentials');
+            console.error('Full Login Error:', err);
+            let msg = 'Invalid credentials';
+            if (err.response && err.response.data) {
+                if (typeof err.response.data === 'string') {
+                    msg = err.response.data.substring(0, 50);
+                } else if (err.response.data.detail) {
+                    msg = err.response.data.detail;
+                } else {
+                    const keys = Object.keys(err.response.data);
+                    if (keys.length > 0) {
+                        msg = `${keys[0]}: ${JSON.stringify(err.response.data[keys[0]])}`;
+                    }
+                }
+            } else if (err.message) {
+                msg = err.message;
+            }
+            setError(msg);
             toast.addToast('Login failed', 'error');
         } finally {
             setLoading(false);
