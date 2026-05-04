@@ -328,10 +328,14 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-    # SSL/HTTPS settings — disabled during test runs (no HTTPS in CI/test env)
-    _is_testing = 'test' in sys.argv
+    # SSL/HTTPS settings — disabled in CI and during test runs
+    _is_testing = 'test' in sys.argv or os.environ.get('CI') == 'true'
     SECURE_SSL_REDIRECT = not _is_testing
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    
+    # Avoid 301 redirects due to missing slashes during tests if URLs are tricky
+    if _is_testing:
+        APPEND_SLASH = True 
     
     # Security headers
     SECURE_CONTENT_TYPE_NOSNIFF = True

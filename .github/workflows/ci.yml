@@ -12,6 +12,7 @@ jobs:
       FORCE_SQLITE: "true"
       DEBUG: "false"
       SECRET_KEY: ci-secret-key
+      SECURE_SSL_REDIRECT: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
