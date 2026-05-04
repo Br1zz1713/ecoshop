@@ -11,6 +11,16 @@ echo.
 echo 🚀 Starting local server...
 echo.
 
+REM Auto-enable SQLite rescue mode when DATABASE_URL is missing
+set "FORCE_SQLITE=true"
+if exist ".env" (
+    for /f "usebackq tokens=1,* delims==" %%a in (".env") do (
+        if /I "%%a"=="DATABASE_URL" set "FORCE_SQLITE=false"
+    )
+)
+echo ✓ FORCE_SQLITE=%FORCE_SQLITE%
+echo.
+
 REM Check for virtual environment
 if exist "venv\Scripts\activate.bat" (
     echo ✓ Virtual environment found

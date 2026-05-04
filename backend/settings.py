@@ -12,8 +12,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 from urllib.parse import urlparse
+from botocore.config import Config
+from corsheaders.defaults import default_headers
 
 try:
     load_dotenv()
@@ -23,6 +26,12 @@ except Exception:
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+def env_bool(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -31,7 +40,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-arl+6l_7zfkkb3t_4)@vz#(9nh26+ack^dprg&xcb@fr80ritc')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True # Temporarily forced for debugging boot crash
+DEBUG = env_bool('DEBUG', default=False)
 
 # Updated ALLOWED_HOSTS for Railway deployment
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
@@ -75,7 +84,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'backend.debug_middleware.ExceptionLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add Whitenoise here
     # 'backend.security_middleware.SecurityHeadersMiddleware',  # Custom security headers (DISABLED FOR DEBUG)
@@ -89,6 +97,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+if DEBUG:
+    MIDDLEWARE.insert(0, 'backend.debug_middleware.ExceptionLoggingMiddleware')
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 AUTHENTICATION_BACKENDS = [
@@ -99,14 +110,32 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.environ.get('DRF_THROTTLE_ANON', '120/minute'),
+        'user': os.environ.get('DRF_THROTTLE_USER', '300/minute'),
+    },
 }
 
-# Allow requests from frontend port (3000)
+# Cache configuration for hot read endpoints.
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'ecoshop-default-cache',
+        'TIMEOUT': int(os.environ.get('CACHE_DEFAULT_TIMEOUT', '300')),
+    }
+}
+CACHE_MIDDLEWARE_SECONDS = int(os.environ.get('CACHE_MIDDLEWARE_SECONDS', '300'))
+
 # CORS Settings
-CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_HEADERS = '*'
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-request-id',
+]
 
 # CSRF Settings
 CSRF_TRUSTED_ORIGINS = [
@@ -154,13 +183,39 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 import dj_database_url
 
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
-        conn_max_age=600,
-        ssl_require=not DEBUG,
-    )
-}
+# Rescue mode for local/dev: allows project to start even when remote DB
+# (e.g. Supabase) is unavailable or intentionally locked.
+FORCE_SQLITE = os.environ.get('FORCE_SQLITE', 'false').lower() == 'true'
+AUTO_SQLITE_FOR_TESTS = env_bool('AUTO_SQLITE_FOR_TESTS', default=True)
+if AUTO_SQLITE_FOR_TESTS and 'test' in sys.argv:
+    FORCE_SQLITE = True
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+
+if FORCE_SQLITE:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+            conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '120')),
+            ssl_require=not DEBUG,
+        )
+    }
+
+if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS'].update({
+        'connect_timeout': int(os.environ.get('DB_CONNECT_TIMEOUT', '10')),
+        'options': os.environ.get(
+            'DB_SERVER_OPTIONS',
+            '-c statement_timeout=15000 -c lock_timeout=5000'
+        ),
+    })
 
 
 # Password validation
@@ -241,6 +296,16 @@ if _SUPABASE_URL and _SUPABASE_STORAGE_KEY:
     AWS_S3_FILE_OVERWRITE = False
     AWS_QUERYSTRING_AUTH = False
     AWS_S3_SIGNATURE_VERSION = 's3v4'
+    AWS_S3_CONNECT_TIMEOUT = int(os.environ.get('AWS_S3_CONNECT_TIMEOUT', '10'))
+    AWS_S3_READ_TIMEOUT = int(os.environ.get('AWS_S3_READ_TIMEOUT', '20'))
+    AWS_S3_CLIENT_CONFIG = Config(
+        retries={
+            'max_attempts': int(os.environ.get('AWS_S3_MAX_RETRIES', '3')),
+            'mode': 'standard',
+        },
+        connect_timeout=AWS_S3_CONNECT_TIMEOUT,
+        read_timeout=AWS_S3_READ_TIMEOUT,
+    )
 
     # Public CDN URL for images served from Supabase Storage
     MEDIA_URL = f"{_SUPABASE_URL}/storage/v1/object/public/{_SUPABASE_STORAGE_BUCKET}/"
@@ -306,12 +371,12 @@ LOGGING = {
         },
         'django.request': {
             'handlers': ['console'],
-            'level': 'DEBUG',  # Log 404s and errors
+            'level': os.environ.get('DJANGO_REQUEST_LOG_LEVEL', 'INFO'),
             'propagate': False,
         },
         'django.db.backends': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': os.environ.get('DJANGO_DB_LOG_LEVEL', 'WARNING'),
             'propagate': False,
         },
     },

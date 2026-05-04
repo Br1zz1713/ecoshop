@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { CheckCircle, CreditCard, Truck } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -13,7 +14,7 @@ export default function Checkout() {
     const { t } = useLanguage();
 
     const [shipping, setShipping] = useState({
-        fullName: '', address: '', city: '', zip: '', country: 'Ukraine'
+        fullName: '', email: '', address: '', city: '', zip: '', country: 'Ukraine'
     });
 
     const [payment, setPayment] = useState({
@@ -22,37 +23,27 @@ export default function Checkout() {
 
     const handlePlaceOrder = async (details) => {
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/shop/orders/create/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    items: items.map(item => ({
-                        product: item.id,
-                        quantity: item.quantity,
-                        price: item.price
-                    })),
-                    // Use shipping info from state
-                    first_name: shipping.fullName.split(' ')[0] || 'Guest',
-                    last_name: shipping.fullName.split(' ').slice(1).join(' ') || 'User',
-                    email: 'guest@example.com', // Placeholder or add input
-                    address: shipping.address,
-                    city: shipping.city,
-                    paid: true
-                }),
+            await axios.post('/api/orders/create/', {
+                items: items.map(item => ({
+                    product: item.id,
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                // Use shipping info from state
+                first_name: shipping.fullName.split(' ')[0] || 'Guest',
+                last_name: shipping.fullName.split(' ').slice(1).join(' ') || 'User',
+                email: shipping.email || 'guest@example.com',
+                address: shipping.address,
+                city: shipping.city,
+                paid: true
             });
 
-            if (response.ok) {
-                clearCart();
-                setStep(3);
-                toast.addToast(t('checkout.success_title'), 'success');
-            } else {
-                toast.addToast('Order failed', 'error');
-            }
+            clearCart();
+            setStep(3);
+            toast.addToast(t('checkout.success_title'), 'success');
         } catch (error) {
             console.error(error);
-            toast.addToast('Network error', 'error');
+            toast.addToast('Order failed', 'error');
         }
     };
 
@@ -118,6 +109,7 @@ export default function Checkout() {
                         {step === 1 && (
                             <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <input className="input-field" placeholder={t('checkout.full_name')} style={{ gridColumn: 'span 2' }} value={shipping.fullName} onChange={e => setShipping({ ...shipping, fullName: e.target.value })} />
+                                <input className="input-field" type="email" placeholder="Email" style={{ gridColumn: 'span 2' }} value={shipping.email} onChange={e => setShipping({ ...shipping, email: e.target.value })} />
                                 <input className="input-field" placeholder={t('checkout.address')} style={{ gridColumn: 'span 2' }} value={shipping.address} onChange={e => setShipping({ ...shipping, address: e.target.value })} />
                                 <input className="input-field" placeholder={t('checkout.city')} value={shipping.city} onChange={e => setShipping({ ...shipping, city: e.target.value })} />
                                 <input className="input-field" placeholder={t('checkout.zip')} value={shipping.zip} onChange={e => setShipping({ ...shipping, zip: e.target.value })} />

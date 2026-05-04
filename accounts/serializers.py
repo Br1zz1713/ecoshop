@@ -22,22 +22,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if User.USERNAME_FIELD and User.USERNAME_FIELD != 'username':
             attrs[User.USERNAME_FIELD] = username_value
             
-        import sys
         data = super().validate(attrs)
-        
-        print(f"[debug] Token validate success for user: {self.user}", file=sys.stderr)
-        
+
         # Add extra user data to the response SAFELY
-        try:
-            # CustomUser might not have 'username', so we use phone_number or str
-            data['username'] = getattr(self.user, 'phone_number', str(self.user))
-            data['email'] = getattr(self.user, 'email', '')
-            data['is_staff'] = getattr(self.user, 'is_staff', False)
-            data['credits'] = getattr(self.user, 'credits', 0)
-        except Exception as e:
-            # Fallback for extra data to avoid 500
-            print(f"Error in token serializer: {e}")
-            
+        # CustomUser might not have 'username', so we use phone_number or str.
+        data['username'] = getattr(self.user, 'phone_number', str(self.user))
+        data['email'] = getattr(self.user, 'email', '')
+        data['is_staff'] = getattr(self.user, 'is_staff', False)
+        data['credits'] = getattr(self.user, 'credits', 0)
+
         return data
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

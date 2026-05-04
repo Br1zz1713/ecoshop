@@ -1,6 +1,5 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
-import { useToast } from '../context/ToastContext.jsx';
 
 const AuthContext = createContext();
 
@@ -21,8 +20,6 @@ export function AuthProvider({ children }) {
         }
     });
     const [loading, setLoading] = useState(true);
-    const toast = useToast(); // FIXED: Moved hook call to top level
-
     useEffect(() => {
         if (tokens) {
             localStorage.setItem('tokens', JSON.stringify(tokens));
@@ -44,7 +41,7 @@ export function AuthProvider({ children }) {
             setUser(null);
         }
         setLoading(false);
-    }, [tokens, toast]);
+    }, [tokens]);
 
     const login = async (username, password) => {
         try {

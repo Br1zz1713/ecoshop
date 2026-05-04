@@ -60,9 +60,6 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         return product
 
     def update(self, instance, validated_data):
-        import sys
-        print(f"[debug] Serializer update for product {instance.id}. Data keys: {list(validated_data.keys())}", file=sys.stderr)
-        
         gallery_images = validated_data.pop('gallery', [])
         delete_image_ids = validated_data.pop('delete_images', [])
         
@@ -70,26 +67,18 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         if delete_image_ids and not isinstance(delete_image_ids, list):
             delete_image_ids = [delete_image_ids]
 
-        try:
-            # Use DRF default update for standard fields
-            instance = super().update(instance, validated_data)
-            
-            # Handle deletions
-            if delete_image_ids:
-                deleted_count, _ = ProductImage.objects.filter(id__in=delete_image_ids, product=instance).delete()
-                print(f"[debug] Deleted {deleted_count} gallery images for product {instance.id}", file=sys.stderr)
+        # Use DRF default update for standard fields
+        instance = super().update(instance, validated_data)
 
-            # Append new images to gallery if provided
-            for image in gallery_images:
-                ProductImage.objects.create(product=instance, image=image)
-            
-            if gallery_images:
-                print(f"[debug] Added {len(gallery_images)} new gallery images", file=sys.stderr)
-                
-            return instance
-        except Exception as e:
-            print(f"[error] Serializer update failed: {e}", file=sys.stderr)
-            raise
+        # Handle deletions
+        if delete_image_ids:
+            ProductImage.objects.filter(id__in=delete_image_ids, product=instance).delete()
+
+        # Append new images to gallery if provided
+        for image in gallery_images:
+            ProductImage.objects.create(product=instance, image=image)
+
+        return instance
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:

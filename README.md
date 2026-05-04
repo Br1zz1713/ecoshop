@@ -1,17 +1,13 @@
 # EcoShop - High-Performance Full-Stack E-commerce MVP
 
-<div align="center">
-
-![EcoShop](image.png)
+EcoShop
 
 **Production-Ready | Scalable Architecture | Enterprise-Grade Code Quality**
 
-[![Django](https://img.shields.io/badge/Django-6.0-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Ready-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-
-</div>
+[Django](https://www.djangoproject.com/)
+[React](https://reactjs.org/)
+[PostgreSQL](https://www.postgresql.org/)
+[License: MIT](https://opensource.org/licenses/MIT)
 
 ---
 
@@ -24,6 +20,7 @@
 ## ✨ Core Features
 
 ### 🔐 **User Authentication & Authorization**
+
 - **JWT-based authentication** with secure token management (access/refresh tokens)
 - **Custom user model** supporting phone number and email-based login
 - **Role-based access control** with admin/staff permissions
@@ -31,6 +28,7 @@
 - **Session management** with automatic token refresh
 
 ### 🛍️ **Dynamic Product Catalog**
+
 - **Advanced filtering system** by category, skin type, and ingredients
 - **Multi-image product gallery** with optimized image handling
 - **Real-time search** and category-based navigation
@@ -38,12 +36,14 @@
 - **Detailed product specifications** including volume, country of origin, and ingredients
 
 ### 🛒 **Shopping Cart & Checkout**
+
 - **Persistent cart state** with real-time quantity updates
 - **Seamless checkout flow** with customer information collection
 - **Order management system** with status tracking
 - **Price calculation engine** with support for discounts and promotions
 
 ### 🎛️ **Integrated Admin Dashboard**
+
 - **Full CRUD operations** for products, categories, and orders
 - **Image upload functionality** with validation and optimization
 - **Category management** with featured product assignments
@@ -51,6 +51,7 @@
 - **Blog post management** for content marketing
 
 ### 🎨 **Responsive & Modern UI/UX**
+
 - **Multi-language support**: English, Ukrainian, Russian with instant switching
 - **Dark/Light theme** with persistent user preferences
 - **Mobile-first responsive design** optimized for all screen sizes
@@ -61,28 +62,30 @@
 
 ## 🛠️ Technical Stack
 
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend Framework** | React 18 | Component-based UI with hooks and context API |
-| **Build Tool** | Vite 5 | Lightning-fast HMR and optimized production builds |
-| **Styling** | Tailwind CSS | Utility-first CSS with custom design system |
-| **State Management** | React Context API | Global state for auth, cart, theme, and language |
-| **HTTP Client** | Axios | Promise-based API communication with interceptors |
-| **Routing** | React Router DOM 6 | Client-side routing with lazy loading |
-| **Icons** | Lucide React | Modern, scalable icon library |
-| **Backend Framework** | Django 6.0 | High-level Python web framework |
-| **API Layer** | Django REST Framework | Powerful toolkit for building Web APIs |
-| **Authentication** | SimpleJWT | JWT authentication for stateless sessions |
-| **Database (Production)** | PostgreSQL | Enterprise-grade relational database |
-| **Database (Development)** | SQLite3 | Lightweight database for local development |
-| **ORM** | Django ORM | Database abstraction with migrations |
-| **CORS Handling** | django-cors-headers | Cross-origin resource sharing configuration |
-| **Static Files** | WhiteNoise | Efficient static file serving for production |
-| **Image Processing** | Pillow | Python imaging library for product photos |
-| **Security** | CSP, HSTS | Content Security Policy and HTTP Strict Transport Security |
-| **Frontend Deployment** | Vercel | Edge network with automatic HTTPS |
-| **Backend Deployment** | Railway | Container-based deployment with PostgreSQL |
-| **CI/CD** | Git-based | Automated deployments on push |
+
+| Layer                      | Technology            | Purpose                                                    |
+| -------------------------- | --------------------- | ---------------------------------------------------------- |
+| **Frontend Framework**     | React 18              | Component-based UI with hooks and context API              |
+| **Build Tool**             | Vite 5                | Lightning-fast HMR and optimized production builds         |
+| **Styling**                | Tailwind CSS          | Utility-first CSS with custom design system                |
+| **State Management**       | React Context API     | Global state for auth, cart, theme, and language           |
+| **HTTP Client**            | Axios                 | Promise-based API communication with interceptors          |
+| **Routing**                | React Router DOM 6    | Client-side routing with lazy loading                      |
+| **Icons**                  | Lucide React          | Modern, scalable icon library                              |
+| **Backend Framework**      | Django 6.0            | High-level Python web framework                            |
+| **API Layer**              | Django REST Framework | Powerful toolkit for building Web APIs                     |
+| **Authentication**         | SimpleJWT             | JWT authentication for stateless sessions                  |
+| **Database (Production)**  | PostgreSQL            | Enterprise-grade relational database                       |
+| **Database (Development)** | SQLite3               | Lightweight database for local development                 |
+| **ORM**                    | Django ORM            | Database abstraction with migrations                       |
+| **CORS Handling**          | django-cors-headers   | Cross-origin resource sharing configuration                |
+| **Static Files**           | WhiteNoise            | Efficient static file serving for production               |
+| **Image Processing**       | Pillow                | Python imaging library for product photos                  |
+| **Security**               | CSP, HSTS             | Content Security Policy and HTTP Strict Transport Security |
+| **Frontend Deployment**    | Vercel                | Edge network with automatic HTTPS                          |
+| **Backend Deployment**     | Railway               | Container-based deployment with PostgreSQL                 |
+| **CI/CD**                  | Git-based             | Automated deployments on push                              |
+
 
 ---
 
@@ -135,6 +138,7 @@ EcoShop implements a **modern, decoupled architecture** that separates the front
 ### Clean API Design
 
 The API follows RESTful principles with:
+
 - **Resource-based URLs** (`/api/products/`, `/api/categories/`)
 - **HTTP method semantics** (GET, POST, PUT, DELETE)
 - **JSON request/response format** for universal compatibility
@@ -165,16 +169,19 @@ Developer Push → GitHub Repository → Automated Build → Environment Config 
 
 #### Deployment Platforms
 
-| Service | Platform | Features |
-|---------|----------|----------|
-| **Frontend** | Vercel | Edge network, automatic HTTPS, instant rollbacks |
-| **Backend** | Railway | Container deployment, PostgreSQL, auto-scaling |
-| **Database** | Railway PostgreSQL | Managed database with automatic backups |
-| **Static Files** | WhiteNoise + CDN | Compressed assets with cache headers |
+
+| Service          | Platform           | Features                                         |
+| ---------------- | ------------------ | ------------------------------------------------ |
+| **Frontend**     | Vercel             | Edge network, automatic HTTPS, instant rollbacks |
+| **Backend**      | Railway            | Container deployment, PostgreSQL, auto-scaling   |
+| **Database**     | Railway PostgreSQL | Managed database with automatic backups          |
+| **Static Files** | WhiteNoise + CDN   | Compressed assets with cache headers             |
+
 
 #### Environment Variables
 
 **Backend (Railway)**:
+
 ```bash
 SECRET_KEY=your-django-secret-key-here
 DATABASE_URL=postgresql://user:password@host:port/database
@@ -183,6 +190,7 @@ DEBUG=False
 ```
 
 **Frontend (Vercel)**:
+
 ```bash
 VITE_API_URL=https://your-backend-api.railway.app
 ```
@@ -224,6 +232,9 @@ venv\Scripts\activate  # Windows
 # Install dependencies
 pip install -r requirements.txt
 
+# Optional: if Supabase/remote DB is unavailable locally
+set FORCE_SQLITE=true
+
 # Run database migrations
 python manage.py migrate
 
@@ -252,6 +263,12 @@ npm run dev
 
 **Frontend runs on**: `http://localhost:5173`
 
+### Health Endpoints
+
+- `GET /health/live/` - process is alive
+- `GET /health/ready/` - database and storage readiness
+- `GET /ping/` - DB reachability quick check
+
 ### Quick Start (Windows)
 
 ```bash
@@ -260,6 +277,7 @@ start_local.bat
 ```
 
 This automated script will:
+
 - ✅ Activate virtual environment
 - ✅ Run database migrations
 - ✅ Start backend server (port 8000)
@@ -396,12 +414,8 @@ For commercial inquiries, customization requests, or technical support:
 
 ---
 
-<div align="center">
-
 **Built with 💚 using Django REST Framework & React**
 
 *Enterprise-Grade | Production-Ready | Scalable Architecture*
 
 ⭐ **Star this repository** if you find it valuable!
-
-</div>
