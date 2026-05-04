@@ -16,11 +16,11 @@ python manage.py migrate --noinput
 
 # Seed database with initial products
 echo "Seeding database..."
-python seed_products.py
+python scripts/seed_products.py
 
 # Create admin user
 echo "Creating admin user..."
-python create_admin.py
+python scripts/create_admin.py
 
 # Collect static files (if not already done)
 echo "Collecting static files..."
