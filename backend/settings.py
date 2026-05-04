@@ -322,14 +322,15 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_HTTPONLY = True
-    
+
     # HSTS settings
     SECURE_HSTS_SECONDS = 31536000  # 1 year
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    
-    # SSL/HTTPS settings
-    SECURE_SSL_REDIRECT = True
+
+    # SSL/HTTPS settings — disabled during test runs (no HTTPS in CI/test env)
+    _is_testing = 'test' in sys.argv
+    SECURE_SSL_REDIRECT = not _is_testing
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     
     # Security headers

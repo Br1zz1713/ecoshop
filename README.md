@@ -75,17 +75,17 @@ EcoShop
 | **Backend Framework**      | Django 6.0            | High-level Python web framework                            |
 | **API Layer**              | Django REST Framework | Powerful toolkit for building Web APIs                     |
 | **Authentication**         | SimpleJWT             | JWT authentication for stateless sessions                  |
-| **Database (Production)**  | PostgreSQL            | Enterprise-grade relational database                       |
+| **Database (Production)**  | Supabase (PostgreSQL) | Enterprise-grade relational database                       |
 | **Database (Development)** | SQLite3               | Lightweight database for local development                 |
 | **ORM**                    | Django ORM            | Database abstraction with migrations                       |
+| **File Storage**           | Supabase Storage (S3) | Object storage for product images and media                |
 | **CORS Handling**          | django-cors-headers   | Cross-origin resource sharing configuration                |
 | **Static Files**           | WhiteNoise            | Efficient static file serving for production               |
 | **Image Processing**       | Pillow                | Python imaging library for product photos                  |
 | **Security**               | CSP, HSTS             | Content Security Policy and HTTP Strict Transport Security |
 | **Frontend Deployment**    | Vercel                | Edge network with automatic HTTPS                          |
-| **Backend Deployment**     | Railway               | Container-based deployment with PostgreSQL                 |
+| **Backend Deployment**     | Railway / Render      | Container-based deployment with Supabase DB                |
 | **CI/CD**                  | Git-based             | Automated deployments on push                              |
-
 
 ---
 
@@ -173,8 +173,9 @@ Developer Push → GitHub Repository → Automated Build → Environment Config 
 | Service          | Platform           | Features                                         |
 | ---------------- | ------------------ | ------------------------------------------------ |
 | **Frontend**     | Vercel             | Edge network, automatic HTTPS, instant rollbacks |
-| **Backend**      | Railway            | Container deployment, PostgreSQL, auto-scaling   |
-| **Database**     | Railway PostgreSQL | Managed database with automatic backups          |
+| **Backend**      | Railway / Render   | Container deployment, auto-scaling               |
+| **Database**     | Supabase           | Managed PostgreSQL with real-time capabilities   |
+| **Storage**      | Supabase Storage   | S3-compatible object storage for media           |
 | **Static Files** | WhiteNoise + CDN   | Compressed assets with cache headers             |
 
 

@@ -30,6 +30,10 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
+/venv
+/.env
+/*.txt
+/image.png
 
 # IDE
 .vscode/
@@ -48,14 +52,16 @@ Thumbs.db
 .gemini/
 
 # Local development files (not needed for Railway)
-run_local.bat
-
-site_manager.py
+scripts/run_local.bat
+scripts/start_local.bat
+scripts/site_manager.py
 README_MANAGER.md
 backend/settings.production.py
 DEPLOYMENT.md
 FIX_404.md
 CLEANUP.md
+GO_LIVE_CHECKLIST.md
+fix_deploy.py
 
 # Node
 node_modules/
