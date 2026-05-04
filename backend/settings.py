@@ -203,9 +203,15 @@ else:
         'default': dj_database_url.config(
             default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
             conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '120')),
-            ssl_require=not DEBUG,
+            ssl_require=False, # Let dj-database-url handle it via URL params or default to False
         )
     }
+    # If using Postgres on Railway/Supabase, often need specific SSL mode
+    if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
+        DATABASES['default'].setdefault('OPTIONS', {})
+        # If no sslmode is specified in the URL, provide a sensible default for production
+        if 'sslmode' not in DATABASE_URL:
+             DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 
 if DATABASES['default']['ENGINE'] == 'django.db.backends.postgresql':
     DATABASES['default'].setdefault('OPTIONS', {})

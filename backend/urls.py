@@ -58,7 +58,7 @@ def ping(request):
         return JsonResponse({
             'status': 'error', 
             'message': f'DB Connection Error: {str(e)}',
-            'traceback': traceback.format_exc() if settings.DEBUG else 'Check logs'
+            'traceback': traceback.format_exc() # Show traceback to debug on Railway
         }, status=500)
 
 def health_ready(request):
