@@ -381,25 +381,24 @@ export default function Shop() {
                         <div className="grid-products">
                             {filteredProducts.map(product => (
                                 <div key={product.id} className="card" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                                    <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden' }}>
+                                    <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden', display: 'block' }}>
                                         {/* Eco Badge */}
-                                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.95)', color: 'var(--color-primary)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 5, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                        <div className="card-badge">
                                             <Leaf size={12} fill="currentColor" /> 100% ECO
                                         </div>
 
                                         {product.volume && (
-                                            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(44,51,44,0.75)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, zIndex: 5 }}>
+                                            <div className="card-volume-badge">
                                                 {product.volume}
                                             </div>
                                         )}
 
-                                        <div className="card-image-container" style={{ height: '280px', background: '#f5f5f0' }}>
+                                        <div className="card-image-container">
                                             <img
                                                 src={product.image || getProductImageByName(product.name)}
                                                 alt={product.name}
                                                 className="card-image"
                                                 loading="lazy"
-                                                style={{ transition: 'transform 0.4s ease' }}
                                             />
                                         </div>
                                     </Link>

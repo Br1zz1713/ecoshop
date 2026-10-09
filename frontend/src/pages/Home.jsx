@@ -126,12 +126,12 @@ export default function Home() {
                     <div className="grid-products">
                         {hitProducts.map((product) => (
                             <div key={product.id} className="card" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
-                                <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden' }}>
-                                    <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(255,255,255,0.95)', color: 'var(--color-primary)', padding: '0.3rem 0.7rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                                <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden', display: 'block' }}>
+                                    <div className="card-badge">
                                         <Leaf size={12} fill="currentColor" /> BESTSELLER
                                     </div>
-                                    <div className="card-image-container" style={{ height: '280px', background: '#f6f6f2' }}>
-                                        <img src={product.image || getProductImageByName(product.name)} alt={product.name} className="card-image" style={{ transition: 'transform 0.4s ease' }} />
+                                    <div className="card-image-container">
+                                        <img src={product.image || getProductImageByName(product.name)} alt={product.name} className="card-image" />
                                     </div>
                                 </Link>
 

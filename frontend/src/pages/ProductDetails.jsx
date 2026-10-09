@@ -107,13 +107,13 @@ export default function ProductDetails() {
 
                 {/* Left: Gallery */}
                 <div className="glass-panel" style={{ padding: '1.8rem', borderRadius: 'var(--radius-md)' }}>
-                    <div className="gallery-main" style={{ height: '460px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: '#f5f5f0', position: 'relative', marginBottom: '1.2rem' }}>
+                    <div className="gallery-main" style={{ height: '460px', borderRadius: 'var(--radius-sm)', overflow: 'hidden', background: 'var(--color-bg)', position: 'relative', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <img
                             src={activeImage || product.image}
                             alt={product.name}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '1rem' }}
                         />
-                        <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(255,255,255,0.95)', color: 'var(--color-primary)', padding: '0.3rem 0.7rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div className="card-badge">
                             <Leaf size={13} fill="currentColor" /> 100% ОРГАНІЧНО
                         </div>
                     </div>
@@ -129,10 +129,10 @@ export default function ProductDetails() {
                                         borderRadius: 'var(--radius-sm)',
                                         overflow: 'hidden',
                                         cursor: 'pointer',
-                                        border: activeImage === img ? '2px solid var(--color-primary)' : '2px solid transparent',
+                                        border: activeImage === img ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
                                         opacity: activeImage === img ? 1 : 0.65,
                                         transition: 'all 0.2s',
-                                        background: '#f5f5f0'
+                                        background: 'var(--color-bg)'
                                     }}
                                 >
                                     <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
