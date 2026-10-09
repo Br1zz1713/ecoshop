@@ -1,35 +1,35 @@
 :root {
-  /* --- Colors --- */
-  --color-bg: #F0F0E8;
-  /* Slightly darker/warmer Ivory */
+  /* --- Luxury Botanical Palette (Aesop / Le Labo Style) --- */
+  --color-bg: #FBFBFA;
+  /* Crisp, warm porcelain off-white */
   --color-surface: #FFFFFF;
-  --color-text: #2C332C;
-  /* Dark Jungle Green - softer than black */
-  --color-text-muted: #6B7C6B;
-  /* Sage Gray */
+  /* Pure white cards */
+  --color-text: #191E1B;
+  /* Deep obsidian charcoal - maximum legibility */
+  --color-text-muted: #59655E;
+  /* Soft mineral gray */
 
-  /* Brand Colors */
-  --color-primary: #556B2F;
-  /* Dark Olive Green */
-  --color-primary-hover: #405222;
-  --color-primary-light: #8FBC8F;
-  /* Dark Sea Green */
-  --color-secondary: #D2B48C;
-  /* Tan/Earth */
-  --color-accent: #C17C74;
-  /* Muted Terra Cotta */
+  /* Brand Accents */
+  --color-primary: #1E3A2F;
+  /* Rich Nordic Botanical Forest Green */
+  --color-primary-hover: #142820;
+  --color-primary-light: #2D5243;
+  --color-secondary: #C4A47C;
+  /* Warm Champagne Gold */
+  --color-accent: #9E5A52;
+  /* Muted Terracotta */
 
-  --color-border: #E8E8E4;
+  --color-border: #E8E7E1;
+  /* Subtle, crisp border */
   --color-error: #D64545;
 
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-shadow: 0 8px 32px rgba(44, 51, 44, 0.05);
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: #E8E7E1;
+  --glass-shadow: 0 10px 30px rgba(25, 30, 27, 0.05);
 
   /* --- Typography --- */
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --font-serif: 'Playfair Display', 'Merriweather', serif;
-  /* More elegant serif */
 
   /* --- Spacing --- */
   --spacing-xs: 0.5rem;
@@ -40,42 +40,33 @@
 
   /* --- Radius --- */
   --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
   --radius-full: 9999px;
 
-  /* --- Shadows (Green Glow) --- */
-  --shadow-sm: 0 1px 2px rgba(85, 107, 47, 0.15);
-  --shadow-md: 0 4px 6px -1px rgba(85, 107, 47, 0.2), 0 2px 4px -1px rgba(85, 107, 47, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(85, 107, 47, 0.25), 0 4px 6px -2px rgba(85, 107, 47, 0.15);
+  /* --- Refined Shadows --- */
+  --shadow-sm: 0 2px 4px rgba(25, 30, 27, 0.04);
+  --shadow-md: 0 6px 16px rgba(25, 30, 27, 0.06);
+  --shadow-lg: 0 16px 36px rgba(25, 30, 27, 0.08);
 }
 
 [data-theme='dark'] {
-  --color-bg: #1A1C1A;
-  /* Very Dark Green/Gray */
-  --color-surface: #262926;
-  --color-text: #F0F2F0;
-  --color-text-muted: #A3B0A3;
+  --color-bg: #111412;
+  /* Deep Botanical Night */
+  --color-surface: #181D1A;
+  /* Elevated slate charcoal */
+  --color-text: #F3F4F3;
+  --color-text-muted: #9BA59E;
 
-  --color-primary: #8FBC8F;
-  /* Lighter Green for dark mode */
-  --color-primary-hover: #A5D1A5;
-  --color-border: #3A3F3A;
+  --color-primary: #4E876F;
+  /* Refined Eucalyptus Green */
+  --color-primary-hover: #5EA386;
+  --color-secondary: #D4B28C;
+  --color-border: #262D29;
 
-  --glass-bg: rgba(30, 32, 30, 0.7);
-  --glass-border: rgba(143, 188, 143, 0.1);
-  --glass-shadow: 0 8px 32px rgba(85, 107, 47, 0.15);
-}
-
-[data-theme='dark'] body {
-  background-image: url('./assets/bg-texture.png');
-  background-blend-mode: overlay;
-  /* Keep overlay for dark mode depth */
-}
-
-/* Fix text readability on hover in dark mode (light green bg) */
-[data-theme='dark'] .btn:hover {
-  color: var(--color-bg);
+  --glass-bg: rgba(24, 29, 26, 0.95);
+  --glass-border: #262D29;
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
 * {
@@ -86,26 +77,12 @@
 
 body {
   background-color: var(--color-bg);
-  background-image: url('./assets/bg-texture-light.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  /* background-blend-mode: overlay; Removed global overlay to fix light mode washout */
   color: var(--color-text);
   font-family: var(--font-sans);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.3s ease, color 0.3s ease;
   overflow-x: hidden;
-}
-
-@media (max-width: 768px) {
-  body {
-    background-attachment: scroll;
-    /* Fix for mobile browser performance */
-    background-size: 150%;
-    /* Zoom in slightly on texture for mobile */
-  }
 }
 
 /* --- Typography --- */

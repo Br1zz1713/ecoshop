@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES } from '../data/mockProducts';
+import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES, getProductImageByName } from '../data/mockProducts';
 
 export default function Shop() {
     const [products, setProducts] = useState(DEFAULT_PRODUCTS);
@@ -44,10 +44,10 @@ export default function Shop() {
             if (prodRes.data && prodRes.data.length > 0) {
                 // Enrich backend items with fallback images if image is missing
                 const merged = prodRes.data.map(item => {
-                    const fallbackMatch = DEFAULT_PRODUCTS.find(p => p.id === item.id || p.name === item.name);
+                    const fallbackMatch = DEFAULT_PRODUCTS.find(p => p.name.toLowerCase() === (item.name || '').toLowerCase() || p.id === item.id);
                     return {
                         ...item,
-                        image: item.image || (fallbackMatch ? fallbackMatch.image : 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800'),
+                        image: item.image || getProductImageByName(item.name),
                         rating: item.rating || (fallbackMatch ? fallbackMatch.rating : 4.9),
                         reviews_count: item.reviews_count || (fallbackMatch ? fallbackMatch.reviews_count : 24),
                         volume: item.volume || (fallbackMatch ? fallbackMatch.volume : '50 ml'),

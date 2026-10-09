@@ -50,22 +50,22 @@ export default function Home() {
 
     return (
         <div>
-            {/* 1. Hero Section (Lavender/Clean) */}
+            {/* 1. Hero Section (Clean Luxury Botanical) */}
             <section className="hero-section" style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop)',
+                backgroundImage: 'url(https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2000&auto=format&fit=crop)',
                 height: '80vh',
                 position: 'relative'
             }}>
-                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(240,240,232,0.92) 0%, rgba(240,240,232,0.6) 50%, rgba(240,240,232,0.1) 100%)' }}></div>
+                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(251,251,250,0.96) 0%, rgba(251,251,250,0.85) 50%, rgba(251,251,250,0.25) 100%)' }}></div>
                 <div className="container" style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}>
                     <div className="animate-slide-up" style={{ textAlign: 'left', maxWidth: '640px', color: 'var(--color-text)' }}>
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '0.4rem 1.2rem', background: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.9rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 600, boxShadow: '0 4px 12px rgba(85, 107, 47, 0.25)' }}>
-                            <Leaf size={16} /> {t('hero.badge')}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '0.45rem 1.2rem', background: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.88rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 600, boxShadow: '0 4px 14px rgba(30, 58, 47, 0.25)' }}>
+                            <Leaf size={15} /> {t('hero.badge')}
                         </span>
                         <h1 className="heading-xl" style={{ fontSize: '3.6rem', marginBottom: '1.5rem', whiteSpace: 'pre-line', color: 'var(--color-text)', lineHeight: 1.15 }}>
                             {t('hero.title')}
                         </h1>
-                        <p style={{ fontSize: '1.25rem', marginBottom: '2.5rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
+                        <p style={{ fontSize: '1.25rem', marginBottom: '2.5rem', color: '#3A4640', lineHeight: 1.6, fontWeight: 500 }}>
                             {t('hero.subtitle')}
                         </p>
                         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -186,8 +186,8 @@ export default function Home() {
             <section className="section container">
                 <Header title={t('home.blog_title')} secondaryColor />
                 <div className="grid-products">
-                    <BlogCard title={t('blog.article_1')} img="https://images.unsplash.com/photo-1598440947619-2c35fc9b908d?q=80&w=800" />
-                    <BlogCard title={t('blog.article_2')} img="https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=800" />
+                    <BlogCard title={t('blog.article_1')} img="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=800" />
+                    <BlogCard title={t('blog.article_2')} img="https://images.unsplash.com/photo-1515377905703-c4788e51af15?q=80&w=800" />
                     <BlogCard title={t('blog.article_3')} img="https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800" />
                 </div>
             </section>

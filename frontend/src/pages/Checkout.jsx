@@ -5,6 +5,7 @@ import axios from 'axios';
 import { CheckCircle, CreditCard, Truck, ShieldCheck, MapPin, Phone, Mail, User, ArrowLeft, PackageCheck } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
+import { getProductImageByName } from '../data/mockProducts';
 
 export default function Checkout() {
     const { items, total, clearCart } = useCart();
@@ -270,7 +271,12 @@ export default function Checkout() {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', maxHeight: '340px', overflowY: 'auto' }}>
                                 {items.map(item => (
                                     <div key={item.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                                        <img src={item.image} alt={item.name} style={{ width: '56px', height: '56px', borderRadius: '6px', objectFit: 'cover', background: '#f5f5f0' }} />
+                                        <img
+                                            src={item.image || getProductImageByName(item.name)}
+                                            alt={item.name}
+                                            onError={(e) => { e.currentTarget.src = getProductImageByName(item.name); }}
+                                            style={{ width: '56px', height: '56px', borderRadius: '6px', objectFit: 'cover', background: '#f5f5f0' }}
+                                        />
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>{item.name}</div>
                                             <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.quantity} шт × ₴{item.price}</div>

@@ -2,6 +2,7 @@ import { useCart } from '../context/CartContext';
 import { Trash2, Plus, Minus, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { getProductImageByName } from '../data/mockProducts';
 
 export default function Cart() {
     const { items, removeFromCart, updateQuantity, total } = useCart();
@@ -38,12 +39,13 @@ export default function Cart() {
                             padding: '1.5rem',
                             borderRadius: 'var(--radius-md)'
                         }}>
-                            <div style={{ width: '100px', height: '100px', background: '#0a0a0a', borderRadius: 'var(--radius-sm)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                {item.image ? (
-                                    <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                ) : (
-                                    <div style={{ color: 'var(--color-text-muted)' }}>No Img</div>
-                                )}
+                            <div style={{ width: '100px', height: '100px', background: '#f5f5f0', borderRadius: 'var(--radius-sm)', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <img
+                                    src={item.image || getProductImageByName(item.name)}
+                                    alt={item.name}
+                                    onError={(e) => { e.currentTarget.src = getProductImageByName(item.name); }}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
                             </div>
 
                             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

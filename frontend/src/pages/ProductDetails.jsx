@@ -5,7 +5,7 @@ import { ShoppingBag, Star, ArrowLeft, Eye, Leaf, ChevronRight, Maximize2, Shiel
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
-import { DEFAULT_PRODUCTS } from '../data/mockProducts';
+import { DEFAULT_PRODUCTS, getProductImageByName } from '../data/mockProducts';
 
 export default function ProductDetails() {
     const { id } = useParams();
@@ -28,10 +28,11 @@ export default function ProductDetails() {
         axios.get(`/api/products/${id}/`)
             .then(res => {
                 if (res.data && res.data.id) {
+                    const resolvedImg = res.data.image || getProductImageByName(res.data.name);
                     const merged = {
                         ...res.data,
-                        image: res.data.image || localMatch.image,
-                        images: res.data.images && res.data.images.length > 0 ? res.data.images : localMatch.images,
+                        image: resolvedImg,
+                        images: res.data.images && res.data.images.length > 0 ? res.data.images : [{ image: resolvedImg }],
                         ingredients: res.data.ingredients || localMatch.ingredients,
                         volume: res.data.volume || localMatch.volume,
                         skin_type: res.data.skin_type || localMatch.skin_type,
