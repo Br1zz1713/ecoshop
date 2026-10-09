@@ -198,6 +198,7 @@ if 'db.fgasxreqytdmfjoonnxz.supabase.co' in DATABASE_URL:
     if 'sslmode' not in DATABASE_URL:
         sep = '&' if '?' in DATABASE_URL else '?'
         DATABASE_URL += f'{sep}sslmode=require'
+    os.environ['DATABASE_URL'] = DATABASE_URL
 
 if FORCE_SQLITE:
     DATABASES = {
@@ -206,13 +207,20 @@ if FORCE_SQLITE:
             'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         }
     }
+elif DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '120')),
+            ssl_require=False,
+        )
+    }
 else:
     DATABASES = {
         'default': dj_database_url.config(
             default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
-            url=DATABASE_URL or None,
             conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '120')),
-            ssl_require=False, # Let dj-database-url handle it via URL params or default to False
+            ssl_require=False,
         )
     }
     # If using Postgres on Railway/Supabase, often need specific SSL mode
