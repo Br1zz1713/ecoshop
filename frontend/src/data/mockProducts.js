@@ -2,39 +2,39 @@
 // High-grade fallback and production dataset for EcoShop with 100% verified 200 OK CDN photos
 
 export function getProductImageByName(name) {
-    if (!name) return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800';
+    if (!name) return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/facial-cream.jpg';
     const n = name.toLowerCase();
     if (n.includes('toothbrush') || n.includes('bamboo')) {
-        if (n.includes('pack') || n.includes('family')) {
-            return 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=800';
-        }
-        return 'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/adult-4-pack-no-cert.jpg';
+    }
+    if (n.includes('cream') || n.includes('facial')) {
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/facial-cream.jpg';
     }
     if (n.includes('mask') || n.includes('clay') || n.includes('detox')) {
-        return 'https://images.unsplash.com/photo-1563178406-4cdc2923acbc?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/green-tea-detox-mask.jpg';
     }
     if (n.includes('shampoo') || n.includes('hair')) {
-        return 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/ecodeviva-organic-shampoo.jpg';
     }
     if (n.includes('soap')) {
-        return 'https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/ecodeviva-body-soap.jpg';
     }
     if (n.includes('toner') || n.includes('rose')) {
-        return 'https://images.unsplash.com/photo-1617897903246-719242758050?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/rose-water-toner.jpg';
     }
     if (n.includes('vitamin c') || n.includes('glow')) {
-        return 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/vitamin-c-glow-drops.jpg';
     }
     if (n.includes('serum') || n.includes('recovery')) {
-        return 'https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/midnight-recovery-serum.jpg';
     }
     if (n.includes('kit') || n.includes('set')) {
-        return 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=800';
+        return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/ecodeviva-starter-kit.jpg';
     }
     if (n.includes('scrub')) {
         return 'https://images.unsplash.com/photo-1571875257727-256c39da42af?q=80&w=800';
     }
-    return 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800';
+    return 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/facial-cream.jpg';
 }
 
 export const DEFAULT_CATEGORIES = [
@@ -225,9 +225,9 @@ export const DEFAULT_PRODUCTS = [
         available: true,
         rating: 4.8,
         reviews_count: 19,
-        image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?q=80&w=800',
+        image: 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/adult-4-pack-no-cert.jpg',
         images: [
-            { image: 'https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?q=80&w=800' }
+            { image: 'https://fgasxreqytdmfjoonnxz.supabase.co/storage/v1/object/public/products/adult-4-pack-no-cert.jpg' }
         ],
         description: '100% biodegradable Mao bamboo handle with soft charcoal-infused bristles. Naturally antimicrobial and compostable within 6 months.',
         ingredients: '100% Sustainable Mao Bamboo, Charcoal-Infused BPA-Free Bristles',

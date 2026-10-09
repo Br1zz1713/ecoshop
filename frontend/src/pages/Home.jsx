@@ -5,7 +5,7 @@ import { ArrowRight, Leaf, ShieldCheck, Truck, CreditCard, ChevronRight, Shoppin
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
-import { DEFAULT_CATEGORIES, DEFAULT_PRODUCTS } from '../data/mockProducts';
+import { DEFAULT_CATEGORIES, DEFAULT_PRODUCTS, getProductImageByName } from '../data/mockProducts';
 
 export default function Home() {
     const { t } = useLanguage();
@@ -28,7 +28,10 @@ export default function Home() {
         axios.get('/api/products/')
             .then(res => {
                 if (res.data && res.data.length > 0) {
-                    const hits = res.data.slice(0, 4);
+                    const hits = res.data.map(p => ({
+                        ...p,
+                        image: p.image || getProductImageByName(p.name)
+                    })).slice(0, 4);
                     setHitProducts(hits);
                 }
             })
@@ -50,13 +53,13 @@ export default function Home() {
 
     return (
         <div>
-            {/* 1. Hero Section (Clean Luxury Botanical) */}
+            {/* 1. Hero Section (Lavender/Clean Original Botanical) */}
             <section className="hero-section" style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2000&auto=format&fit=crop)',
+                backgroundImage: 'url(https://images.unsplash.com/photo-1541980209-17d3d2dc8519?q=80&w=2000&auto=format&fit=crop)',
                 height: '80vh',
                 position: 'relative'
             }}>
-                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(251,251,250,0.96) 0%, rgba(251,251,250,0.85) 50%, rgba(251,251,250,0.25) 100%)' }}></div>
+                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(250,250,245,0.88) 0%, rgba(250,250,245,0.7) 50%, rgba(250,250,245,0.15) 100%)' }}></div>
                 <div className="container" style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}>
                     <div className="animate-slide-up" style={{ textAlign: 'left', maxWidth: '640px', color: 'var(--color-text)' }}>
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '0.45rem 1.2rem', background: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.88rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 600, boxShadow: '0 4px 14px rgba(30, 58, 47, 0.25)' }}>
@@ -128,7 +131,7 @@ export default function Home() {
                                         <Leaf size={12} fill="currentColor" /> BESTSELLER
                                     </div>
                                     <div className="card-image-container" style={{ height: '280px', background: '#f6f6f2' }}>
-                                        <img src={product.image} alt={product.name} className="card-image" style={{ transition: 'transform 0.4s ease' }} />
+                                        <img src={product.image || getProductImageByName(product.name)} alt={product.name} className="card-image" style={{ transition: 'transform 0.4s ease' }} />
                                     </div>
                                 </Link>
 

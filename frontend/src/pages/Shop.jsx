@@ -395,7 +395,7 @@ export default function Shop() {
 
                                         <div className="card-image-container" style={{ height: '280px', background: '#f5f5f0' }}>
                                             <img
-                                                src={product.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800'}
+                                                src={product.image || getProductImageByName(product.name)}
                                                 alt={product.name}
                                                 className="card-image"
                                                 loading="lazy"
