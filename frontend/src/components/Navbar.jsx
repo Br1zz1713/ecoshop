@@ -12,12 +12,21 @@ export default function Navbar() {
     const { theme, toggleTheme } = useTheme();
     const { language, setLanguage, t } = useLanguage();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isLangOpen, setIsLangOpen] = useState(false);
+    const flags = { en: '🇺🇸', ua: '🇺🇦', ru: '🇷🇺' };
     const location = useLocation();
 
-    // Close menu on route change
+    // Close menus on route change or outside click
     useEffect(() => {
         setIsMenuOpen(false);
+        setIsLangOpen(false);
     }, [location]);
+
+    useEffect(() => {
+        const close = () => setIsLangOpen(false);
+        if (isLangOpen) window.addEventListener('click', close);
+        return () => window.removeEventListener('click', close);
+    }, [isLangOpen]);
 
     const isActive = (path) => location.pathname === path;
 
@@ -74,50 +83,34 @@ export default function Navbar() {
                 <div className="flex items-center gap-sm">
 
                     {/* Language Switcher */}
-                    <div className="lang-switcher relative">
-                        {(() => {
-                            const [open, setOpen] = useState(false);
-                            const flags = { en: '🇺🇸', ua: '🇺🇦', ru: '🇷🇺' };
+                    <div className="lang-switcher relative" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setIsLangOpen(!isLangOpen)}
+                            className="icon-btn gap-xs"
+                            style={{
+                                border: 'none',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: 600,
+                            }}
+                        >
+                            <Globe size={18} /> <span className="desktop-only">{flags[language]}</span>
+                        </button>
 
-                            // Close dropdown when clicking outside
-                            useEffect(() => {
-                                const close = () => setOpen(false);
-                                if (open) window.addEventListener('click', close);
-                                return () => window.removeEventListener('click', close);
-                            }, [open]);
-
-                            return (
-                                <div onClick={(e) => e.stopPropagation()}>
+                        {isLangOpen && (
+                            <div className="glass-panel dropdown-menu">
+                                {['en', 'ua', 'ru'].map(lang => (
                                     <button
-                                        onClick={() => setOpen(!open)}
-                                        className="icon-btn gap-xs"
-                                        style={{
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            fontSize: '0.9rem',
-                                            fontWeight: 600,
-                                        }}
+                                        key={lang}
+                                        onClick={() => { setLanguage(lang); setIsLangOpen(false); }}
+                                        className={`dropdown-item ${language === lang ? 'active' : ''}`}
                                     >
-                                        <Globe size={18} /> <span className="desktop-only">{flags[language]}</span>
+                                        <span style={{ fontSize: '1.2rem' }}>{flags[lang]}</span>
+                                        <span>{lang.toUpperCase()}</span>
                                     </button>
-
-                                    {open && (
-                                        <div className="glass-panel dropdown-menu">
-                                            {['en', 'ua', 'ru'].map(lang => (
-                                                <button
-                                                    key={lang}
-                                                    onClick={() => { setLanguage(lang); setOpen(false); }}
-                                                    className={`dropdown-item ${language === lang ? 'active' : ''}`}
-                                                >
-                                                    <span style={{ fontSize: '1.2rem' }}>{flags[lang]}</span>
-                                                    <span>{lang.toUpperCase()}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })()}
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Theme Toggle */}

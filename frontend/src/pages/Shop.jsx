@@ -1,31 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
-import { ShoppingBag, Filter, Leaf, ChevronRight, X } from 'lucide-react';
+import { ShoppingBag, Filter, Leaf, ChevronRight, X, Star, Search, RefreshCw } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { DEFAULT_PRODUCTS, DEFAULT_CATEGORIES } from '../data/mockProducts';
 
 export default function Shop() {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState(DEFAULT_PRODUCTS);
+    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    const [loading, setLoading] = useState(false);
     const { addToCart } = useCart();
-    const [searchParams, setSearchParams] = useSearchParams(); // Fixed: Use setSearchParams
+    const toast = useToast();
+    const [searchParams, setSearchParams] = useSearchParams();
     const searchQuery = searchParams.get('search') || '';
-    const categoryParam = searchParams.get('category') || 'all'; // Get category from URL
+    const categoryParam = searchParams.get('category') || 'all';
     const { t } = useLanguage();
 
     // Filter States
-    const [priceRange, setPriceRange] = useState(2000);
+    const [priceRange, setPriceRange] = useState(1500);
     const [selectedCategories, setSelectedCategories] = useState(categoryParam === 'all' ? [] : [categoryParam]);
     const [selectedSkinType, setSelectedSkinType] = useState([]);
     const [selectedIngredients, setSelectedIngredients] = useState([]);
     const [sortBy, setSortBy] = useState('newest');
+    const [searchInput, setSearchInput] = useState(searchQuery);
 
     // Sync state with URL param
-    const [categories, setCategories] = useState([]);
-
-    // Sync state with URL param
-    // Sync state with URL param (Initial load)
     useEffect(() => {
         if (categoryParam === 'all') {
             setSelectedCategories([]);
@@ -35,34 +36,54 @@ export default function Shop() {
     }, [categoryParam]);
 
     useEffect(() => {
-        setLoading(true);
-        // Fetch products and categories
+        // Fetch products and categories with graceful fallback
         Promise.all([
-            axios.get('/api/products/'),
+            axios.get('/api/products/').catch(() => ({ data: [] })),
             axios.get('/api/categories/').catch(() => ({ data: [] }))
         ]).then(([prodRes, catRes]) => {
-            setProducts(prodRes.data);
-            setCategories(catRes.data || []);
-            setLoading(false);
-        }).catch(err => {
-            console.error("Error fetching shop data", err);
-            setLoading(false);
+            if (prodRes.data && prodRes.data.length > 0) {
+                // Enrich backend items with fallback images if image is missing
+                const merged = prodRes.data.map(item => {
+                    const fallbackMatch = DEFAULT_PRODUCTS.find(p => p.id === item.id || p.name === item.name);
+                    return {
+                        ...item,
+                        image: item.image || (fallbackMatch ? fallbackMatch.image : 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800'),
+                        rating: item.rating || (fallbackMatch ? fallbackMatch.rating : 4.9),
+                        reviews_count: item.reviews_count || (fallbackMatch ? fallbackMatch.reviews_count : 24),
+                        volume: item.volume || (fallbackMatch ? fallbackMatch.volume : '50 ml'),
+                        skin_type: item.skin_type || (fallbackMatch ? fallbackMatch.skin_type : 'All types'),
+                    };
+                });
+                setProducts(merged);
+            } else {
+                setProducts(DEFAULT_PRODUCTS);
+            }
+
+            if (catRes.data && catRes.data.length > 0) {
+                setCategories(catRes.data);
+            } else {
+                setCategories(DEFAULT_CATEGORIES);
+            }
+        }).catch(() => {
+            setProducts(DEFAULT_PRODUCTS);
+            setCategories(DEFAULT_CATEGORIES);
         });
     }, []);
+
+    const toggleCategory = (catId) => {
+        const idStr = catId.toString();
+        if (selectedCategories.includes(idStr)) {
+            setSelectedCategories(selectedCategories.filter(c => c !== idStr));
+        } else {
+            setSelectedCategories([...selectedCategories, idStr]);
+        }
+    };
 
     const toggleSkinType = (type) => {
         if (selectedSkinType.includes(type)) {
             setSelectedSkinType(selectedSkinType.filter(t => t !== type));
         } else {
             setSelectedSkinType([...selectedSkinType, type]);
-        }
-    };
-
-    const toggleCategory = (catId) => {
-        if (selectedCategories.includes(catId.toString())) {
-            setSelectedCategories(selectedCategories.filter(id => id !== catId.toString()));
-        } else {
-            setSelectedCategories([...selectedCategories, catId.toString()]);
         }
     };
 
@@ -74,142 +95,200 @@ export default function Shop() {
         }
     };
 
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            if (searchInput.trim()) {
+                next.set('search', searchInput.trim());
+            } else {
+                next.delete('search');
+            }
+            return next;
+        });
+    };
+
+    const handleQuickAdd = (product, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCart(product);
+        if (toast && toast.addToast) {
+            toast.addToast(`${product.name} додано в кошик!`, 'success');
+        }
+    };
+
+    const resetFilters = () => {
+        setPriceRange(1500);
+        setSelectedCategories([]);
+        setSelectedSkinType([]);
+        setSelectedIngredients([]);
+        setSearchInput('');
+        setSearchParams({});
+    };
+
     // Filter Logic
-    const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesPrice = parseFloat(product.price) <= priceRange;
+    const filteredProducts = useMemo(() => {
+        return products.filter(product => {
+            // Price Filter
+            const price = parseFloat(product.price);
+            if (price > priceRange) return false;
 
-        // Category Filter Logic:
-        // selectedCategory can be 'all' or a specific category ID (string from URL/state)
-        // product.category is now an object { id, name, slug } from backend
-        let matchesCategory = true;
-        if (selectedCategories.length > 0) {
-            // Compare IDs. product.category might be null if data is bad, so safe check
-            matchesCategory = product.category && selectedCategories.includes(product.category.id.toString());
-        }
+            // Category Filter
+            if (selectedCategories.length > 0) {
+                const prodCatId = (product.category_id || product.category || '').toString();
+                if (!selectedCategories.includes(prodCatId)) {
+                    return false;
+                }
+            }
 
-        // Ingredient Filter Logic (Placeholder - assumes product might have ingredients array or simply pass if empty to avoid breaking)
-        // In a real app, product.ingredients would be checked.
-        // For now, if no ingredients filter is selected, it passes.
-        // If selected, we verify if product has AT LEAST ONE of the selected ingredients (OR logic) or ALL (AND logic).
-        // Let's go with permissive OR logic for now.
-        let matchesIngredients = true;
-        if (selectedIngredients.length > 0) {
-            // matchesIngredients = product.ingredients && product.ingredients.some(i => selectedIngredients.includes(i));
-            // Since backend might not have this yet, we won't strictly filter OUT to avoid empty results during dev,
-            // UNLESS the user explicitly wants us to mock it.
-            // However, to demonstrate 'manipulation', I will add a dummy check:
-            matchesIngredients = true; // Placeholder: currently effectively ignored to prevent empty lists
-        }
+            // Search Filter
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                const nameMatch = (product.name || '').toLowerCase().includes(q);
+                const descMatch = (product.description || '').toLowerCase().includes(q);
+                const ingMatch = (product.ingredients || '').toLowerCase().includes(q);
+                if (!nameMatch && !descMatch && !ingMatch) return false;
+            }
 
-        return matchesSearch && matchesPrice && matchesCategory && matchesIngredients;
-    }).sort((a, b) => {
-        if (sortBy === 'price-asc') return parseFloat(a.price) - parseFloat(b.price);
-        if (sortBy === 'price-desc') return parseFloat(b.price) - parseFloat(a.price);
-        return 0;
-    });
+            // Skin Type Filter
+            if (selectedSkinType.length > 0) {
+                const prodSkin = (product.skin_type || '').toLowerCase();
+                const matches = selectedSkinType.some(type => {
+                    if (type === 'dry') return prodSkin.includes('dry') || prodSkin.includes('сух');
+                    if (type === 'oily') return prodSkin.includes('oily') || prodSkin.includes('жир');
+                    if (type === 'combo') return prodSkin.includes('combo') || prodSkin.includes('комбін');
+                    if (type === 'normal') return prodSkin.includes('normal') || prodSkin.includes('норм') || prodSkin.includes('all');
+                    return prodSkin.includes(type);
+                });
+                if (!matches) return false;
+            }
 
-    const [showMobileFilter, setShowMobileFilter] = useState(false);
+            // Ingredients Filter
+            if (selectedIngredients.length > 0) {
+                const prodIng = (product.ingredients || '').toLowerCase();
+                const matchesIng = selectedIngredients.some(ing => {
+                    if (ing === 'ing_collagen') return prodIng.includes('collagen');
+                    if (ing === 'ing_hyaluronic') return prodIng.includes('hyaluron');
+                    if (ing === 'ing_vitc') return prodIng.includes('ascorbic') || prodIng.includes('vitamin c') || prodIng.includes('вітамін');
+                    return false;
+                });
+                if (!matchesIng) return false;
+            }
+
+            return true;
+        }).sort((a, b) => {
+            if (sortBy === 'price-asc') return parseFloat(a.price) - parseFloat(b.price);
+            if (sortBy === 'price-desc') return parseFloat(b.price) - parseFloat(a.price);
+            if (sortBy === 'popular') return (b.views || 0) - (a.views || 0);
+            return (b.id || 0) - (a.id || 0); // newest first
+        });
+    }, [products, priceRange, selectedCategories, searchQuery, selectedSkinType, selectedIngredients, sortBy]);
 
     return (
         <div className="container section">
-            {/* Mobile Filter Toggle */}
-            <div className="mobile-only" style={{ marginBottom: '1rem' }}>
-                <button
-                    className="btn"
-                    onClick={() => setShowMobileFilter(true)}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                >
-                    <Filter size={20} /> {t('shop.filters')}
-                </button>
+            {/* Header / Breadcrumb */}
+            <div style={{ marginBottom: '2.5rem' }}>
+                <span style={{ fontSize: '0.9rem', color: 'var(--color-primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Органічний догляд
+                </span>
+                <h1 className="heading-xl" style={{ textAlign: 'left', marginBottom: '0.5rem', fontSize: '3rem' }}>
+                    {t('shop.title')}
+                </h1>
+                <p style={{ color: 'var(--color-text-muted)', fontSize: '1.1rem' }}>
+                    Знайдено {filteredProducts.length} преміальних позицій
+                </p>
             </div>
 
-            {/* Filter Overlay */}
-            <div
-                className={`filter-overlay ${showMobileFilter ? 'open' : ''}`}
-                onClick={() => setShowMobileFilter(false)}
-            ></div>
+            {/* Layout Grid */}
+            <div className="shop-layout" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '3rem', alignItems: 'start' }}>
 
-            <div className="shop-layout" style={{ position: 'relative' }}>
-                {/* Sidebar Filters */}
-                <aside className={`glass-panel filter-sidebar ${showMobileFilter ? 'open' : ''}`}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                        <h3 style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-serif)' }}>
-                            <Filter size={20} /> {t('shop.filters')}
-                        </h3>
-                        <button className="mobile-only icon-btn" onClick={() => setShowMobileFilter(false)}>
-                            <X size={24} />
+                {/* Filters Sidebar */}
+                <aside className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', position: 'sticky', top: '100px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1.1rem' }}>
+                            <Filter size={18} color="var(--color-primary)" />
+                            {t('shop.filters')}
+                        </div>
+                        <button
+                            onClick={resetFilters}
+                            style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                            <RefreshCw size={12} /> Скинути
                         </button>
-                        <button className="desktop-only btn" style={{ padding: '0.2rem 0.5rem', fontSize: '0.8rem', background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
-                            onClick={() => { setPriceRange(2000); setSelectedCategories([]); setSelectedSkinType([]); setSelectedIngredients([]); }}
-                        >Reset</button>
                     </div>
+
+                    {/* Search */}
+                    <form onSubmit={handleSearchSubmit} style={{ marginBottom: '1.8rem', position: 'relative' }}>
+                        <input
+                            type="text"
+                            placeholder={t('shop.search_placeholder')}
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                            className="input-field"
+                            style={{ padding: '0.6rem 2.2rem 0.6rem 0.9rem', width: '100%', fontSize: '0.9rem' }}
+                        />
+                        <button type="submit" style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)' }}>
+                            <Search size={16} />
+                        </button>
+                    </form>
 
                     {/* Price Range */}
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '1rem', fontWeight: 600 }}>{t('shop.price_range')}</label>
+                    <div style={{ marginBottom: '2rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.95rem' }}>
+                            <span>{t('shop.price_range')}</span>
+                            <span style={{ color: 'var(--color-primary)' }}>до ₴{priceRange}</span>
+                        </div>
                         <input
                             type="range"
-                            min="0" max="3000"
+                            min="80"
+                            max="1500"
+                            step="10"
                             value={priceRange}
                             onChange={(e) => setPriceRange(Number(e.target.value))}
-                            style={{ width: '100%', accentColor: 'var(--color-primary)', height: '4px', marginBottom: '0.5rem' }}
+                            style={{ width: '100%', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
                         />
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                            <span>₴0</span>
-                            <span>₴{priceRange}</span>
-                        </div>
                     </div>
 
-                    {/* Categories - Dynamic */}
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{t('shop.categories')}</label>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                            {/* Always show 'All' */}
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: selectedCategories.length === 0 ? 'var(--color-primary)' : 'var(--color-text)' }}>
-                                <div style={{
-                                    width: '18px', height: '18px', borderRadius: '4px', border: '2px solid currentColor',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                }}>
-                                    {selectedCategories.length === 0 && <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'currentColor' }}></div>}
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={selectedCategories.length === 0}
-                                    onChange={() => setSelectedCategories([])}
-                                    style={{ display: 'none' }}
-                                />
-                                <span style={{ fontSize: '0.95rem' }}>{t('home.see_all')}</span>
-                            </label>
-
-                            {/* Dynamic List from Backend */}
+                    {/* Category Filter */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.8rem', fontWeight: 600, fontSize: '0.95rem' }}>
+                            {t('shop.categories')}
+                        </label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                             {categories.map(cat => (
-                                <label key={cat.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', color: selectedCategories.includes(cat.id.toString()) ? 'var(--color-primary)' : 'var(--color-text)' }}>
-                                    <div style={{
-                                        width: '18px', height: '18px', borderRadius: '4px', border: '2px solid currentColor',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
-                                    }}>
-                                        {selectedCategories.includes(cat.id.toString()) && <div style={{ width: '10px', height: '10px', borderRadius: '2px', background: 'currentColor' }}></div>}
-                                    </div>
+                                <label
+                                    key={cat.id}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '0.75rem',
+                                        cursor: 'pointer',
+                                        color: selectedCategories.includes(cat.id.toString()) ? 'var(--color-primary)' : 'var(--color-text)',
+                                        fontWeight: selectedCategories.includes(cat.id.toString()) ? 600 : 400
+                                    }}
+                                >
                                     <input
                                         type="checkbox"
                                         checked={selectedCategories.includes(cat.id.toString())}
                                         onChange={() => toggleCategory(cat.id)}
-                                        style={{ display: 'none' }}
+                                        style={{ accentColor: 'var(--color-primary)', width: '16px', height: '16px' }}
                                     />
-                                    <span style={{ fontSize: '0.95rem' }}>{cat.name}</span>
+                                    <span style={{ fontSize: '0.92rem' }}>{cat.name}</span>
                                 </label>
                             ))}
                         </div>
                     </div>
 
-                    {/* Skin Type Filter (New) */}
-                    <div style={{ marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{t('shop.filter_skin')}</label>
+                    {/* Skin Type Filter */}
+                    <div style={{ marginBottom: '2rem' }}>
+                        <label style={{ display: 'block', marginBottom: '0.8rem', fontWeight: 600, fontSize: '0.95rem' }}>
+                            {t('shop.filter_skin')}
+                        </label>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                             {['dry', 'oily', 'combo', 'normal'].map(type => (
                                 <button
                                     key={type}
+                                    type="button"
                                     onClick={() => toggleSkinType(type)}
                                     style={{
                                         padding: '0.4rem 0.8rem',
@@ -218,6 +297,7 @@ export default function Shop() {
                                         background: selectedSkinType.includes(type) ? 'var(--color-primary)' : 'transparent',
                                         color: selectedSkinType.includes(type) ? '#fff' : 'var(--color-text)',
                                         fontSize: '0.85rem',
+                                        cursor: 'pointer',
                                         transition: 'all 0.2s'
                                     }}
                                 >
@@ -227,170 +307,143 @@ export default function Shop() {
                         </div>
                     </div>
 
-                    {/* Ingredients Filter - Concise Pills */}
+                    {/* Ingredients Filter */}
                     <div>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>{t('shop.filter_ingredients')}</label>
+                        <label style={{ display: 'block', marginBottom: '0.8rem', fontWeight: 600, fontSize: '0.95rem' }}>
+                            {t('shop.filter_ingredients')}
+                        </label>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                             {['ing_collagen', 'ing_hyaluronic', 'ing_vitc'].map(ing => (
                                 <button
                                     key={ing}
+                                    type="button"
                                     onClick={() => toggleIngredient(ing)}
                                     style={{
-                                        padding: '0.3rem 0.7rem',
-                                        borderRadius: '4px',
+                                        padding: '0.35rem 0.75rem',
+                                        borderRadius: '6px',
                                         border: `1px solid ${selectedIngredients.includes(ing) ? 'var(--color-primary)' : 'var(--color-border)'}`,
-                                        background: selectedIngredients.includes(ing) ? 'rgba(85, 107, 47, 0.1)' : 'transparent',
+                                        background: selectedIngredients.includes(ing) ? 'rgba(85, 107, 47, 0.15)' : 'transparent',
                                         color: selectedIngredients.includes(ing) ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                                        fontSize: '0.85rem',
+                                        fontSize: '0.82rem',
                                         cursor: 'pointer',
                                         transition: 'all 0.2s',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '0.3rem'
+                                        gap: '4px'
                                     }}
                                 >
-                                    {selectedIngredients.includes(ing) && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }}></div>}
                                     {t(`shop.${ing}`)}
                                 </button>
                             ))}
                         </div>
                     </div>
-
                 </aside>
 
-                {/* Product Grid */}
+                {/* Products Grid Column */}
                 <div>
-                    <div style={{ margin: '0 0 2rem 0' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                                <h2 className="heading-lg" style={{ fontSize: '2rem', marginBottom: 0, textAlign: 'left', marginRight: '1rem' }}>
-                                    {searchQuery ? `${t('shop.results_for')} "${searchQuery}"` : t('shop.title')}
-                                </h2>
+                    {/* Top Sort Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div>
+                            {searchQuery && (
+                                <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                    Пошук за: <strong>"{searchQuery}"</strong>
+                                </span>
+                            )}
+                        </div>
 
-                                {/* Active Category Tags */}
-                                {selectedCategories.length > 0 && selectedCategories.map(catId => {
-                                    const cat = categories.find(c => c.id.toString() === catId);
-                                    if (!cat) return null;
-                                    return (
-                                        <button
-                                            key={catId}
-                                            onClick={() => toggleCategory(catId)}
-                                            className="animate-fade-in"
-                                            style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '0.4rem',
-                                                padding: '0.3rem 0.8rem',
-                                                background: 'var(--color-surface)',
-                                                border: '1px solid var(--color-primary)',
-                                                borderRadius: 'var(--radius-full)',
-                                                color: 'var(--color-primary)',
-                                                fontSize: '0.85rem',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                fontWeight: 500
-                                            }}
-                                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-error)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--color-error)'; }}
-                                            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface)'; e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                                        >
-                                            {cat.name} <X size={14} />
-                                        </button>
-                                    );
-                                })}
-
-                                {/* Active Ingredient Tags */}
-                                {selectedIngredients.length > 0 && selectedIngredients.map(ing => (
-                                    <button
-                                        key={ing}
-                                        onClick={() => toggleIngredient(ing)}
-                                        className="animate-fade-in"
-                                        style={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '0.4rem',
-                                            padding: '0.3rem 0.8rem',
-                                            background: 'var(--color-surface)',
-                                            border: '1px solid var(--color-primary)',
-                                            borderRadius: 'var(--radius-full)',
-                                            color: 'var(--color-primary)',
-                                            fontSize: '0.85rem',
-                                            cursor: 'pointer',
-                                            transition: 'all 0.2s',
-                                            fontWeight: 500
-                                        }}
-                                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-error)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--color-error)'; }}
-                                        onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--color-surface)'; e.currentTarget.style.color = 'var(--color-primary)'; e.currentTarget.style.borderColor = 'var(--color-primary)'; }}
-                                    >
-                                        {t(`shop.${ing}`)} <X size={14} />
-                                    </button>
-                                ))}
-                            </div>
-
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                            <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Сортування:</span>
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value)}
                                 className="input-field"
-                                style={{ width: 'auto', padding: '0.6rem 2.5rem 0.6rem 1rem', borderRadius: 'var(--radius-sm)' }}
+                                style={{ width: 'auto', padding: '0.5rem 2rem 0.5rem 0.8rem', borderRadius: 'var(--radius-sm)', fontSize: '0.9rem' }}
                             >
                                 <option value="newest">{t('shop.sort_newest')}</option>
                                 <option value="price-asc">{t('shop.sort_price_low')}</option>
                                 <option value="price-desc">{t('shop.sort_price_high')}</option>
+                                <option value="popular">Популярні</option>
                             </select>
                         </div>
                     </div>
 
-                    {loading ? (
-                        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}><div className="animate-pulse">Loading products...</div></div>
-                    ) : filteredProducts.length === 0 ? (
+                    {/* Products Grid */}
+                    {filteredProducts.length === 0 ? (
                         <div style={{ textAlign: 'center', padding: '6rem 2rem', background: 'var(--glass-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
-                            <p style={{ fontSize: '1.2rem', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>No products found.</p>
-                            <button onClick={() => { setPriceRange(2000); setSelectedCategories([]); }} className="btn">
-                                Clear Filters
+                            <Leaf size={48} color="var(--color-primary)" style={{ margin: '0 auto 1.5rem', opacity: 0.6 }} />
+                            <h3 style={{ fontSize: '1.4rem', marginBottom: '0.5rem' }}>Товарів за вашим запитом не знайдено</h3>
+                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>Спробуйте послабити фільтри за ціною або категоріями.</p>
+                            <button onClick={resetFilters} className="btn">
+                                Скинути всі фільтри
                             </button>
                         </div>
                     ) : (
                         <div className="grid-products">
                             {filteredProducts.map(product => (
-                                <div key={product.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Link to={`/product/${product.id}`} style={{ position: 'relative' }}>
+                                <div key={product.id} className="card" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                                    <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden' }}>
                                         {/* Eco Badge */}
-                                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: '#fff', color: 'var(--color-primary)', padding: '0.2rem 0.6rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 5, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                            <Leaf size={12} fill="currentColor" /> ECO
+                                        <div style={{ position: 'absolute', top: '10px', left: '10px', background: 'rgba(255,255,255,0.95)', color: 'var(--color-primary)', padding: '0.25rem 0.6rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 5, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                            <Leaf size={12} fill="currentColor" /> 100% ECO
                                         </div>
 
-                                        <div className="card-image-container" style={{ height: '280px', background: '#f5f5f0' }}>
-                                            {product.image ? (
-                                                <img src={product.image} alt={product.name} className="card-image" />
-                                            ) : (
-                                                <ShoppingBag size={48} color="var(--color-text-muted)" />
-                                            )}
-                                            {/* Price Badge Overlay */}
-                                            <div className="badge" style={{ bottom: '1rem', top: 'auto', right: '1rem', background: 'rgba(255,255,255,0.9)', color: '#2C332C', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-                                                ₴{product.price}
+                                        {product.volume && (
+                                            <div style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(44,51,44,0.75)', color: '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, zIndex: 5 }}>
+                                                {product.volume}
                                             </div>
+                                        )}
+
+                                        <div className="card-image-container" style={{ height: '280px', background: '#f5f5f0' }}>
+                                            <img
+                                                src={product.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800'}
+                                                alt={product.name}
+                                                className="card-image"
+                                                loading="lazy"
+                                                style={{ transition: 'transform 0.4s ease' }}
+                                            />
                                         </div>
                                     </Link>
 
-                                    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <div style={{ padding: '1.4rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                        {/* Rating */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.5rem', color: '#EAB308' }}>
+                                            <Star size={14} fill="currentColor" />
+                                            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{product.rating || 4.9}</span>
+                                            <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>({product.reviews_count || 24})</span>
+                                        </div>
+
                                         <Link to={`/product/${product.id}`}>
-                                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)', lineHeight: 1.3 }}>{product.name}</h3>
+                                            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.4rem', fontFamily: 'var(--font-serif)', lineHeight: 1.3, color: 'var(--color-text)' }}>
+                                                {product.name}
+                                            </h3>
                                         </Link>
-                                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+
+                                        <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem', flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                                             {product.description}
                                         </p>
-                                        <button
-                                            className="btn"
-                                            style={{ width: '100%', display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center' }}
-                                            onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                                        >
-                                            <ShoppingBag size={18} /> {t('product.add_to_cart')}
-                                        </button>
+
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.8rem', borderTop: '1px solid var(--color-border)', marginTop: 'auto' }}>
+                                            <div>
+                                                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', display: 'block' }}>Ціна</span>
+                                                <span style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--color-text)' }}>₴{product.price}</span>
+                                            </div>
+
+                                            <button
+                                                onClick={(e) => handleQuickAdd(product, e)}
+                                                className="btn"
+                                                style={{ padding: '0.55rem 1.1rem', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                                title="Додати в кошик"
+                                            >
+                                                <ShoppingBag size={15} /> В кошик
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
+
             </div>
         </div>
     );

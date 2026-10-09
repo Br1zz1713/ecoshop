@@ -1,57 +1,88 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Leaf, ShieldCheck, Truck, CreditCard, ChevronRight } from 'lucide-react';
+import { ArrowRight, Leaf, ShieldCheck, Truck, CreditCard, ChevronRight, ShoppingBag, Star } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useCart } from '../context/CartContext';
+import { useToast } from '../context/ToastContext';
+import { DEFAULT_CATEGORIES, DEFAULT_PRODUCTS } from '../data/mockProducts';
 
 export default function Home() {
     const { t } = useLanguage();
-    const [categories, setCategories] = useState([]);
+    const { addToCart } = useCart();
+    const toast = useToast();
+    const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+    const [hitProducts, setHitProducts] = useState(DEFAULT_PRODUCTS.slice(0, 4));
 
     useEffect(() => {
         axios.get('/api/categories/')
-            .then(res => setCategories(res.data))
-            .catch(err => console.error("Failed to fetch categories", err));
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    setCategories(res.data);
+                }
+            })
+            .catch(() => {
+                setCategories(DEFAULT_CATEGORIES);
+            });
+
+        axios.get('/api/products/')
+            .then(res => {
+                if (res.data && res.data.length > 0) {
+                    const hits = res.data.slice(0, 4);
+                    setHitProducts(hits);
+                }
+            })
+            .catch(() => {
+                setHitProducts(DEFAULT_PRODUCTS.slice(0, 4));
+            });
     }, []);
 
-    const visibleCategories = categories.filter(c => c.is_visible_on_main);
+    const visibleCategories = categories.filter(c => c.is_visible_on_main !== false);
 
-    // Static images mapping to prevent broken images on deploy
-    const CATEGORY_IMAGES = {
-        'Body Care': 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=800',
-        'Face Care': 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=800',
-        'Eco Sets': 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=800',
-        'Hair Care': 'https://images.unsplash.com/photo-1522337660859-02fbefca4702?q=80&w=800',
-        'Zero Waste': 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?q=80&w=800'
+    const handleAddToCart = (product, e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        addToCart(product);
+        if (toast && toast.addToast) {
+            toast.addToast(`${product.name} додано в кошик!`, 'success');
+        }
     };
 
     return (
         <div>
             {/* 1. Hero Section (Lavender/Clean) */}
             <section className="hero-section" style={{
-                backgroundImage: 'url(https://images.unsplash.com/photo-1541980209-17d3d2dc8519?q=80&w=2000&auto=format&fit=crop)',
-                height: '80vh'
+                backgroundImage: 'url(https://images.unsplash.com/photo-1540555700478-4be289fbecef?q=80&w=2000&auto=format&fit=crop)',
+                height: '80vh',
+                position: 'relative'
             }}>
-                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(250,250,245,0.8), rgba(250,250,245,0))' }}></div>
+                <div className="hero-overlay" style={{ background: 'linear-gradient(to right, rgba(240,240,232,0.92) 0%, rgba(240,240,232,0.6) 50%, rgba(240,240,232,0.1) 100%)' }}></div>
                 <div className="container" style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'center', height: '100%' }}>
-                    <div className="animate-slide-up" style={{ textAlign: 'left', maxWidth: '600px', color: 'var(--color-text)' }}>
-                        <span style={{ display: 'inline-block', padding: '0.4rem 1rem', background: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.9rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 600 }}>
-                            {t('hero.badge')}
+                    <div className="animate-slide-up" style={{ textAlign: 'left', maxWidth: '640px', color: 'var(--color-text)' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '0.4rem 1.2rem', background: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.9rem', marginBottom: '1.5rem', color: '#fff', fontWeight: 600, boxShadow: '0 4px 12px rgba(85, 107, 47, 0.25)' }}>
+                            <Leaf size={16} /> {t('hero.badge')}
                         </span>
-                        <h1 className="heading-xl" style={{ fontSize: '3.5rem', marginBottom: '1.5rem', whiteSpace: 'pre-line', color: 'var(--color-text)' }}>{t('hero.title')}</h1>
+                        <h1 className="heading-xl" style={{ fontSize: '3.6rem', marginBottom: '1.5rem', whiteSpace: 'pre-line', color: 'var(--color-text)', lineHeight: 1.15 }}>
+                            {t('hero.title')}
+                        </h1>
                         <p style={{ fontSize: '1.25rem', marginBottom: '2.5rem', color: 'var(--color-text-muted)', lineHeight: 1.6 }}>
                             {t('hero.subtitle')}
                         </p>
-                        <div style={{ display: 'flex', gap: '1rem' }}>
-                            <Link to="/shop" className="btn" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem' }}>{t('hero.shop_all')}</Link>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                            <Link to="/shop" className="btn" style={{ padding: '1rem 2.5rem', fontSize: '1.1rem', boxShadow: '0 8px 20px rgba(85,107,47,0.3)' }}>
+                                {t('hero.shop_all')} <ArrowRight size={18} style={{ marginLeft: '6px' }} />
+                            </Link>
+                            <Link to="/about" className="btn" style={{ background: 'transparent', border: '2px solid var(--color-primary)', color: 'var(--color-primary)', padding: '1rem 2rem', fontSize: '1.1rem' }}>
+                                {t('hero.our_story')}
+                            </Link>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* 2. Values Banner (4 Icons) */}
-            <div style={{ background: 'var(--color-surface)', padding: '4rem 0', borderBottom: '1px solid var(--color-border)' }}>
-                <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'center' }}>
+            <div style={{ background: 'var(--color-surface)', padding: '3.5rem 0', borderBottom: '1px solid var(--color-border)' }}>
+                <div className="container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '2.5rem', textAlign: 'center' }}>
                     <FeatureItem icon={<Leaf color="var(--color-primary)" size={28} />} title={t('features.organic')} desc={t('features.organic_desc')} />
                     <FeatureItem icon={<ShieldCheck color="var(--color-primary)" size={28} />} title={t('features.cruelty')} desc={t('features.cruelty_desc')} />
                     <FeatureItem icon={<Truck color="var(--color-primary)" size={28} />} title={t('features.carbon')} desc={t('features.carbon_desc')} />
@@ -59,7 +90,7 @@ export default function Home() {
                 </div>
             </div>
 
-            {/* 3. Categories (Dynamic) */}
+            {/* 3. Categories (Dynamic with rich covers) */}
             {visibleCategories.length > 0 && (
                 <section className="section container">
                     <Header title={t('home.categories')} secondaryColor />
@@ -68,7 +99,7 @@ export default function Home() {
                             <CategoryCard
                                 key={cat.id}
                                 title={cat.name}
-                                img={CATEGORY_IMAGES[cat.name] || cat.featured_product_image || 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=800'}
+                                img={cat.image || 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=800'}
                                 link={`/shop?category=${cat.id}`}
                             />
                         ))}
@@ -76,21 +107,60 @@ export default function Home() {
                 </section>
             )}
 
-            {/* 4. Hits / Trusted (Mock) */}
+            {/* 4. Real Bestsellers / Hits with Working Buy */}
             <section className="section" style={{ background: 'var(--color-surface)' }}>
                 <div className="container">
-                    <Header title={t('home.hits')} secondaryColor />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+                        <div>
+                            <span style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.95rem', letterSpacing: '1px', textTransform: 'uppercase' }}>Selected for You</span>
+                            <h2 className="heading-lg" style={{ marginBottom: 0, textAlign: 'left', color: 'var(--color-secondary)' }}>{t('home.hits')}</h2>
+                        </div>
+                        <Link to="/shop" style={{ color: 'var(--color-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1rem' }}>
+                            {t('home.see_all')} <ChevronRight size={18} />
+                        </Link>
+                    </div>
+
                     <div className="grid-products">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="card">
-                                <div className="card-image-container">
-                                    <img src={`https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=600`} alt="" className="card-image" />
-                                </div>
-                                <div style={{ padding: '1rem' }}>
-                                    <h4 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Hyaluronic Serum {i}</h4>
-                                    <div className="flex justify-between items-center">
-                                        <span style={{ fontWeight: 600, color: 'var(--color-secondary)' }}>₴850</span>
-                                        <button className="btn" style={{ padding: '0.5rem 1rem', fontSize: '0.9rem' }}>Buy</button>
+                        {hitProducts.map((product) => (
+                            <div key={product.id} className="card" style={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                                <Link to={`/product/${product.id}`} style={{ position: 'relative', overflow: 'hidden' }}>
+                                    <div style={{ position: 'absolute', top: '12px', left: '12px', background: 'rgba(255,255,255,0.95)', color: 'var(--color-primary)', padding: '0.3rem 0.7rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px', zIndex: 5, boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>
+                                        <Leaf size={12} fill="currentColor" /> BESTSELLER
+                                    </div>
+                                    <div className="card-image-container" style={{ height: '280px', background: '#f6f6f2' }}>
+                                        <img src={product.image} alt={product.name} className="card-image" style={{ transition: 'transform 0.4s ease' }} />
+                                    </div>
+                                </Link>
+
+                                <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '0.5rem', color: '#EAB308' }}>
+                                        <Star size={15} fill="currentColor" />
+                                        <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-text)' }}>{product.rating || 5.0}</span>
+                                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>({product.reviews_count || 24})</span>
+                                    </div>
+
+                                    <Link to={`/product/${product.id}`} style={{ flex: 1 }}>
+                                        <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', fontFamily: 'var(--font-serif)', color: 'var(--color-text)', lineHeight: 1.3 }}>
+                                            {product.name}
+                                        </h3>
+                                    </Link>
+
+                                    <p style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                        {product.description}
+                                    </p>
+
+                                    <div className="flex justify-between items-center" style={{ paddingTop: '0.8rem', borderTop: '1px solid var(--color-border)', marginTop: 'auto' }}>
+                                        <div>
+                                            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block' }}>Ціна</span>
+                                            <span style={{ fontWeight: 700, fontSize: '1.3rem', color: 'var(--color-text)' }}>₴{product.price}</span>
+                                        </div>
+                                        <button
+                                            onClick={(e) => handleAddToCart(product, e)}
+                                            className="btn"
+                                            style={{ padding: '0.6rem 1.2rem', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        >
+                                            <ShoppingBag size={16} /> В кошик
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -141,11 +211,13 @@ function FeatureItem({ icon, title, desc }) {
 
 function CategoryCard({ title, img, link }) {
     return (
-        <Link to={link} className="card relative" style={{ height: '350px' }}>
-            <img src={img} alt={title} className="card-image" />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.5rem', background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}>
-                <h3 style={{ fontSize: '1.4rem', color: '#fff', marginBottom: '0.2rem' }}>{title}</h3>
-                <span style={{ color: '#fff', fontWeight: 600, fontSize: '0.9rem' }}>Explore &rarr;</span>
+        <Link to={link} className="card relative" style={{ height: '320px', overflow: 'hidden', display: 'block' }}>
+            <img src={img} alt={title} className="card-image" style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.8rem', background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)' }}>
+                <h3 style={{ fontSize: '1.4rem', color: '#fff', marginBottom: '0.4rem', fontFamily: 'var(--font-serif)' }}>{title}</h3>
+                <span style={{ color: 'var(--color-secondary)', fontWeight: 600, fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    Переглянути колекцію &rarr;
+                </span>
             </div>
         </Link>
     );
@@ -153,15 +225,17 @@ function CategoryCard({ title, img, link }) {
 
 function BlogCard({ title, img }) {
     return (
-        <div className="card" style={{ cursor: 'pointer' }}>
-            <div className="card-image-container" style={{ height: '200px' }}>
-                <img src={img} alt={title} className="card-image" />
+        <Link to="/blog" className="card" style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}>
+            <div className="card-image-container" style={{ height: '220px', overflow: 'hidden' }}>
+                <img src={img} alt={title} className="card-image" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             </div>
-            <div style={{ padding: '1.5rem' }}>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--color-secondary)' }}>{title}</h3>
-                <span style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>Read More <ChevronRight size={16} /></span>
+            <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.8rem', color: 'var(--color-text)', fontFamily: 'var(--font-serif)', lineHeight: 1.3 }}>{title}</h3>
+                <span style={{ color: 'var(--color-primary)', fontWeight: 600, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    Читати статтю <ChevronRight size={16} />
+                </span>
             </div>
-        </div>
+        </Link>
     );
 }
 

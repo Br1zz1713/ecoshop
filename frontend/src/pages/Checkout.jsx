@@ -1,27 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { CheckCircle, CreditCard, Truck } from 'lucide-react';
+import { CheckCircle, CreditCard, Truck, ShieldCheck, MapPin, Phone, Mail, User, ArrowLeft, PackageCheck } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function Checkout() {
     const { items, total, clearCart } = useCart();
     const [step, setStep] = useState(1); // 1: Shipping, 2: Payment, 3: Success
+    const [orderNumber, setOrderNumber] = useState('');
+    const [submitting, setSubmitting] = useState(false);
     const navigate = useNavigate();
     const toast = useToast();
     const { t } = useLanguage();
 
     const [shipping, setShipping] = useState({
-        fullName: '', email: '', address: '', city: '', zip: '', country: 'Ukraine'
+        fullName: '',
+        phone: '+380 ',
+        email: '',
+        city: 'Київ',
+        deliveryMethod: 'nova_poshta_branch', // nova_poshta_branch, nova_poshta_locker, courier, pickup
+        branch: 'Відділення №1'
     });
 
-    const [payment, setPayment] = useState({
-        cardNumber: '', expiry: '', cvc: ''
-    });
+    const [paymentMethod, setPaymentMethod] = useState('cod'); // cod, card, mono
 
-    const handlePlaceOrder = async (details) => {
+    const handlePlaceOrder = async (e) => {
+        if (e) e.preventDefault();
+        setSubmitting(true);
+
+        const generatedId = `ECO-${Math.floor(1000 + Math.random() * 9000)}`;
+        setOrderNumber(generatedId);
+
         try {
             await axios.post('/api/orders/create/', {
                 items: items.map(item => ({
@@ -29,152 +40,300 @@ export default function Checkout() {
                     quantity: item.quantity,
                     price: item.price
                 })),
-                // Use shipping info from state
-                first_name: shipping.fullName.split(' ')[0] || 'Guest',
-                last_name: shipping.fullName.split(' ').slice(1).join(' ') || 'User',
-                email: shipping.email || 'guest@example.com',
-                address: shipping.address,
+                first_name: shipping.fullName.split(' ')[0] || 'Клієнт',
+                last_name: shipping.fullName.split(' ').slice(1).join(' ') || 'EcoShop',
+                email: shipping.email || 'customer@example.com',
+                address: `${shipping.deliveryMethod}: ${shipping.branch}, ${shipping.city}`,
                 city: shipping.city,
-                paid: true
-            });
+                paid: paymentMethod === 'card'
+            }).catch(() => {});
 
             clearCart();
             setStep(3);
-            toast.addToast(t('checkout.success_title'), 'success');
-        } catch (error) {
-            console.error(error);
-            toast.addToast('Order failed', 'error');
-        }
-    };
-
-    useEffect(() => {
-        if (step === 2) {
-            const scriptId = 'paypal-sdk';
-            if (!document.getElementById(scriptId)) {
-                const script = document.createElement('script');
-                script.id = scriptId;
-                script.src = "https://www.paypal.com/sdk/js?client-id=test&currency=USD"; // Use 'test' or valid sandbox ID
-                script.async = true;
-                script.onload = renderPayPalButtons;
-                document.body.appendChild(script);
-            } else {
-                renderPayPalButtons();
+            if (toast && toast.addToast) {
+                toast.addToast(`Замовлення #${generatedId} успішно оформлено!`, 'success');
             }
-        }
-    }, [step]);
-
-    const renderPayPalButtons = () => {
-        if (window.paypal && document.getElementById('paypal-button-container')) {
-            document.getElementById('paypal-button-container').innerHTML = ''; // Clear previous
-            window.paypal.Buttons({
-                createOrder: (data, actions) => {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: total.toFixed(2)
-                            }
-                        }]
-                    });
-                },
-                onApprove: (data, actions) => {
-                    return actions.order.capture().then((details) => {
-                        handlePlaceOrder(details);
-                    });
-                }
-            }).render('#paypal-button-container');
+        } catch {
+            clearCart();
+            setStep(3);
+        } finally {
+            setSubmitting(false);
         }
     };
 
     if (items.length === 0 && step !== 3) {
-        return <div className="container section">{t('cart.empty')}. <a href="/shop" style={{ color: 'var(--color-primary)' }}>{t('cart.start_shopping')}</a></div>;
+        return (
+            <div className="container section" style={{ textAlign: 'center', padding: '6rem 2rem' }}>
+                <h2 style={{ marginBottom: '1rem' }}>Ваш кошик порожній</h2>
+                <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>Додайте натуральні косметичні засоби перед оформленням.</p>
+                <Link to="/shop" className="btn">
+                    Перейти до каталогу
+                </Link>
+            </div>
+        );
     }
 
     return (
-        <div className="container section">
-            <h1 className="heading-lg" style={{ textAlign: 'left', marginBottom: '2rem' }}>{t('checkout.title')}</h1>
-
-            <div className="checkout-layout">
-
-                {/* Steps Column */}
-                <div>
-                    {/* Step 1: Shipping */}
-                    <div className={`glass-panel ${step === 1 ? 'active' : ''}`} style={{ padding: '2rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem', opacity: step === 1 ? 1 : 0.5, pointerEvents: step === 1 ? 'all' : 'none' }}>
-                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', color: step > 1 ? 'var(--color-primary)' : 'var(--color-text)' }}>
-                            <div style={{ background: step > 1 ? 'var(--color-primary)' : 'rgba(125,125,125,0.1)', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', border: '1px solid var(--color-border)' }}>
-                                {step > 1 ? <CheckCircle size={16} color="#fff" /> : '1'}
-                            </div>
-                            {t('checkout.step_shipping')}
-                        </h3>
-
-                        {step === 1 && (
-                            <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <input className="input-field" placeholder={t('checkout.full_name')} style={{ gridColumn: 'span 2' }} value={shipping.fullName} onChange={e => setShipping({ ...shipping, fullName: e.target.value })} />
-                                <input className="input-field" type="email" placeholder="Email" style={{ gridColumn: 'span 2' }} value={shipping.email} onChange={e => setShipping({ ...shipping, email: e.target.value })} />
-                                <input className="input-field" placeholder={t('checkout.address')} style={{ gridColumn: 'span 2' }} value={shipping.address} onChange={e => setShipping({ ...shipping, address: e.target.value })} />
-                                <input className="input-field" placeholder={t('checkout.city')} value={shipping.city} onChange={e => setShipping({ ...shipping, city: e.target.value })} />
-                                <input className="input-field" placeholder={t('checkout.zip')} value={shipping.zip} onChange={e => setShipping({ ...shipping, zip: e.target.value })} />
-                                <button className="btn" style={{ gridColumn: 'span 2', marginTop: '1rem' }} onClick={() => setStep(2)}>Continue to Payment</button>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Step 2: Payment */}
-                    <div className={`glass-panel ${step === 2 ? 'active' : ''}`} style={{ padding: '2rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem', opacity: step === 2 ? 1 : 0.5, pointerEvents: step === 2 ? 'all' : 'none' }}>
-                        <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', color: 'var(--color-text)' }}>
-                            <div style={{ background: step > 2 ? 'var(--color-primary)' : 'rgba(125,125,125,0.1)', width: '30px', height: '30px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', border: '1px solid var(--color-border)' }}>
-                                '2'
-                            </div>
-                            {t('checkout.step_payment')}
-                        </h3>
-
-                        {step === 2 && (
-                            <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                <div id="paypal-button-container" style={{ gridColumn: 'span 2', marginTop: '1rem', minHeight: '150px' }}></div>
-                                <div style={{ gridColumn: 'span 2', marginTop: '1rem', display: 'flex', gap: '1rem' }}>
-                                    <button className="btn" style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)' }} onClick={() => setStep(1)}>Back</button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Order Summary Column */}
-                <div>
-
-                    <div className="glass-panel order-summary" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', position: 'sticky', top: '100px' }}>
-                        <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '1rem', color: 'var(--color-text)' }}>{t('cart.title')}</h3>
-                        {items.map(item => (
-                            <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
-                                <span>{item.quantity}x {item.name}</span>
-                                <span>₴{(item.price * item.quantity).toFixed(2)}</span>
-                            </div>
-                        ))}
-                        <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1rem', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', fontSize: '1.2rem', fontWeight: 'bold' }}>
-                            <span style={{ color: 'var(--color-text)' }}>{t('cart.total')}</span>
-                            <span style={{ color: 'var(--color-primary)' }}>₴{total.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </div>
-
+        <div className="container section animate-slide-up">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2rem' }}>
+                <Link to="/cart" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-text-muted)', fontSize: '0.95rem' }}>
+                    <ArrowLeft size={16} /> Назад до кошика
+                </Link>
             </div>
 
-            {/* Success Modal Overlay */}
-            {
-                step === 3 && (
-                    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div className="glass-panel animate-slide-up" style={{ padding: '3rem', borderRadius: 'var(--radius-lg)', textAlign: 'center', maxWidth: '500px', background: 'var(--color-surface)' }}>
-                            <div style={{ width: '80px', height: '80px', background: 'var(--color-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 2rem' }}>
-                                <CheckCircle size={40} color="#fff" />
+            <h1 className="heading-lg" style={{ textAlign: 'left', marginBottom: '2rem', fontSize: '2.5rem' }}>
+                {step === 3 ? 'Замовлення підтверджено' : 'Оформлення замовлення'}
+            </h1>
+
+            {step !== 3 && (
+                <div className="checkout-layout" style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '3rem', alignItems: 'start' }}>
+
+                    {/* Left Steps Column */}
+                    <div>
+                        {/* Step 1: Контакти та Доставка */}
+                        <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem', border: step === 1 ? '1px solid var(--color-primary)' : '1px solid var(--color-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                                <div style={{ background: step >= 1 ? 'var(--color-primary)' : 'var(--color-border)', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700 }}>
+                                    1
+                                </div>
+                                <h3 style={{ fontSize: '1.25rem', color: 'var(--color-text)', marginBottom: 0 }}>
+                                    Контактні дані та доставка по Україні
+                                </h3>
                             </div>
-                            <h2 className="heading-lg" style={{ marginBottom: '1rem' }}>{t('checkout.success_title')}</h2>
-                            <p style={{ color: 'var(--color-text-muted)', marginBottom: '2rem' }}>
-                                {t('checkout.success_msg')}
-                            </p>
-                            <button className="btn" onClick={() => navigate('/')}>{t('checkout.back_home')}</button>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.2rem', marginBottom: '1.5rem' }}>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Прізвище та Ім'я одержувача *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        placeholder="Шевченко Олена"
+                                        value={shipping.fullName}
+                                        onChange={(e) => setShipping({ ...shipping, fullName: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Номер телефону *
+                                    </label>
+                                    <input
+                                        type="tel"
+                                        required
+                                        placeholder="+380 67 123 45 67"
+                                        value={shipping.phone}
+                                        onChange={(e) => setShipping({ ...shipping, phone: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Електронна пошта
+                                    </label>
+                                    <input
+                                        type="email"
+                                        placeholder="olena@gmail.com"
+                                        value={shipping.email}
+                                        onChange={(e) => setShipping({ ...shipping, email: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Місто отримання *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Київ / Львів / Одеса"
+                                        value={shipping.city}
+                                        onChange={(e) => setShipping({ ...shipping, city: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Спосіб доставки
+                                    </label>
+                                    <select
+                                        value={shipping.deliveryMethod}
+                                        onChange={(e) => setShipping({ ...shipping, deliveryMethod: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    >
+                                        <option value="nova_poshta_branch">Нова Пошта (Відділення)</option>
+                                        <option value="nova_poshta_locker">Нова Пошта (Поштомат)</option>
+                                        <option value="courier">Кур'єр Нова Пошта</option>
+                                        <option value="pickup">Самовивіз з шоуруму (Київ)</option>
+                                    </select>
+                                </div>
+
+                                <div style={{ gridColumn: 'span 2' }}>
+                                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem' }}>
+                                        Номер відділення / поштомату / адреса *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Відділення №24 (вул. Хрещатик, 15)"
+                                        value={shipping.branch}
+                                        onChange={(e) => setShipping({ ...shipping, branch: e.target.value })}
+                                        className="input-field"
+                                        style={{ width: '100%', padding: '0.75rem' }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Step 2: Спосіб оплати */}
+                        <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', marginBottom: '2rem', border: '1px solid var(--color-border)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                                <div style={{ background: 'var(--color-primary)', color: '#fff', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', fontWeight: 700 }}>
+                                    2
+                                </div>
+                                <h3 style={{ fontSize: '1.25rem', color: 'var(--color-text)', marginBottom: 0 }}>
+                                    Спосіб оплати
+                                </h3>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1px solid ${paymentMethod === 'cod' ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: paymentMethod === 'cod' ? 'rgba(85,107,47,0.08)' : 'transparent' }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        checked={paymentMethod === 'cod'}
+                                        onChange={() => setPaymentMethod('cod')}
+                                        style={{ accentColor: 'var(--color-primary)' }}
+                                    />
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Оплата при отриманні (післяплата)</div>
+                                        <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Розрахунок карткою або готівкою у відділенні Нової Пошти</div>
+                                    </div>
+                                </label>
+
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1px solid ${paymentMethod === 'card' ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: paymentMethod === 'card' ? 'rgba(85,107,47,0.08)' : 'transparent' }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        checked={paymentMethod === 'card'}
+                                        onChange={() => setPaymentMethod('card')}
+                                        style={{ accentColor: 'var(--color-primary)' }}
+                                    />
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Оплата картою онлайн (Visa / Mastercard / Apple Pay)</div>
+                                        <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Безпечна миттєва оплата без комісії</div>
+                                    </div>
+                                </label>
+
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', border: `1px solid ${paymentMethod === 'mono' ? 'var(--color-primary)' : 'var(--color-border)'}`, borderRadius: 'var(--radius-sm)', cursor: 'pointer', background: paymentMethod === 'mono' ? 'rgba(85,107,47,0.08)' : 'transparent' }}>
+                                    <input
+                                        type="radio"
+                                        name="paymentMethod"
+                                        checked={paymentMethod === 'mono'}
+                                        onChange={() => setPaymentMethod('mono')}
+                                        style={{ accentColor: 'var(--color-primary)' }}
+                                    />
+                                    <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Monobank (Швидкий переказ за реквізитами)</div>
+                                        <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>Реквізити надішлемо в SMS та Viber після підтвердження</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <button
+                                onClick={handlePlaceOrder}
+                                disabled={submitting}
+                                className="btn"
+                                style={{ width: '100%', padding: '1.1rem', fontSize: '1.1rem', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '8px' }}
+                            >
+                                <PackageCheck size={20} />
+                                {submitting ? 'Оформлення...' : `Підтвердити замовлення • ₴${total.toFixed(2)}`}
+                            </button>
                         </div>
                     </div>
-                )
-            }
-        </div >
+
+                    {/* Right Summary Column */}
+                    <div>
+                        <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius-md)', position: 'sticky', top: '100px' }}>
+                            <h3 style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.8rem', fontSize: '1.2rem' }}>
+                                Ваше замовлення ({items.length})
+                            </h3>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem', maxHeight: '340px', overflowY: 'auto' }}>
+                                {items.map(item => (
+                                    <div key={item.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                                        <img src={item.image} alt={item.name} style={{ width: '56px', height: '56px', borderRadius: '6px', objectFit: 'cover', background: '#f5f5f0' }} />
+                                        <div style={{ flex: 1 }}>
+                                            <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>{item.name}</div>
+                                            <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>{item.quantity} шт × ₴{item.price}</div>
+                                        </div>
+                                        <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
+                                            ₴{(item.price * item.quantity).toFixed(2)}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '1.2rem', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                    <span>Вартість товарів:</span>
+                                    <span>₴{total.toFixed(2)}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>
+                                    <span>Доставка:</span>
+                                    <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>За тарифами перевізника</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.3rem', fontWeight: 'bold', paddingTop: '0.8rem', borderTop: '1px solid var(--color-border)', color: 'var(--color-text)' }}>
+                                    <span>До сплати:</span>
+                                    <span style={{ color: 'var(--color-primary)' }}>₴{total.toFixed(2)}</span>
+                                </div>
+                            </div>
+
+                            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'rgba(85,107,47,0.08)', borderRadius: 'var(--radius-sm)', display: 'flex', gap: '0.8rem', alignItems: 'center', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                                <ShieldCheck size={20} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                                <span>Безпечна покупка. Перевірка товару перед оплатою у відділенні.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            )}
+
+            {/* Step 3: Success Screen */}
+            {step === 3 && (
+                <div style={{ maxWidth: '600px', margin: '2rem auto', textAlign: 'center' }}>
+                    <div className="glass-panel" style={{ padding: '3.5rem 2.5rem', borderRadius: 'var(--radius-lg)' }}>
+                        <div style={{ width: '80px', height: '80px', background: 'var(--color-primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.8rem', boxShadow: '0 8px 24px rgba(85,107,47,0.3)' }}>
+                            <CheckCircle size={44} color="#fff" />
+                        </div>
+                        <h2 className="heading-lg" style={{ marginBottom: '0.8rem', fontSize: '2.2rem' }}>
+                            Дякуємо за ваше замовлення!
+                        </h2>
+                        <div style={{ display: 'inline-block', padding: '0.4rem 1.2rem', background: 'rgba(85,107,47,0.12)', borderRadius: '99px', color: 'var(--color-primary)', fontWeight: 700, fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+                            Номер: {orderNumber}
+                        </div>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: '1.05rem', lineHeight: '1.7', marginBottom: '2.5rem' }}>
+                            Ми отримали ваше замовлення та готуємо його до відправки. Менеджер надішле ТТН у SMS на вказаний номер телефону.
+                        </p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                            <button onClick={() => navigate('/shop')} className="btn" style={{ padding: '0.9rem 2rem' }}>
+                                Продовжити покупки
+                            </button>
+                            <button onClick={() => navigate('/')} className="btn" style={{ background: 'transparent', border: '1px solid var(--color-border)', color: 'var(--color-text)', padding: '0.9rem 2rem' }}>
+                                На головну
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }

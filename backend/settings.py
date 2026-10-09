@@ -190,6 +190,14 @@ AUTO_SQLITE_FOR_TESTS = env_bool('AUTO_SQLITE_FOR_TESTS', default=True)
 if AUTO_SQLITE_FOR_TESTS and 'test' in sys.argv:
     FORCE_SQLITE = True
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if 'db.fgasxreqytdmfjoonnxz.supabase.co' in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace(
+        'postgres:eugen_br1zz@db.fgasxreqytdmfjoonnxz.supabase.co:5432',
+        'postgres.fgasxreqytdmfjoonnxz:eugen_br1zz@aws-0-eu-west-1.pooler.supabase.com:6543'
+    )
+    if 'sslmode' not in DATABASE_URL:
+        sep = '&' if '?' in DATABASE_URL else '?'
+        DATABASE_URL += f'{sep}sslmode=require'
 
 if FORCE_SQLITE:
     DATABASES = {
@@ -202,6 +210,7 @@ else:
     DATABASES = {
         'default': dj_database_url.config(
             default=f"sqlite:///{os.path.join(BASE_DIR, 'db.sqlite3')}",
+            url=DATABASE_URL or None,
             conn_max_age=int(os.environ.get('DB_CONN_MAX_AGE', '120')),
             ssl_require=False, # Let dj-database-url handle it via URL params or default to False
         )
